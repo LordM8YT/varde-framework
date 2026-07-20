@@ -1,0 +1,16 @@
+# Runtime data
+resources/**/data/*.sqlite
+resources/**/data/*.sqlite-*
+
+# FiveM / Cfx Server runtime folders
+cache/
+crashes/
+logs/
+profiler/
+txData/
+
+# Local editor and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

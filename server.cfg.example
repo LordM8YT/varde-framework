@@ -1,0 +1,29 @@
+# Minimal development configuration for FiveM for GTAV Enhanced / Cfx Server.
+# Copy this file outside the repository and add your own sv_licenseKey.
+
+endpoint_add_tcp "0.0.0.0:30120"
+endpoint_add_udp "0.0.0.0:30120"
+
+sv_hostname "Varde Framework Development"
+sets sv_projectName "Varde Framework"
+sets sv_projectDesc "Varde — an independent Enhanced-first framework"
+sv_maxclients 8
+
+# Required by varde_core.
+set onesync on
+set sv_stateBagStrictMode true
+
+# Enables Enhanced developer tools for everyone and limits the server to 8
+# slots. Replace this with per-player deferrals.handover access before
+# production.
+set sv_devmode true
+
+# Core settings can override config/defaults.json without editing the resource.
+set varde_maxCharacters 4
+set varde_saveIntervalMs 60000
+
+ensure varde_core
+ensure varde_example
+
+# Add this locally. Never commit a real key.
+# sv_licenseKey "..."

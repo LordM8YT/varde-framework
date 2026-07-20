@@ -1,0 +1,12 @@
+{
+  "name": "varde-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Varde Framework core for FiveM Enhanced",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

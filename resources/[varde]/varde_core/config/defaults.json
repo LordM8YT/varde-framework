@@ -1,0 +1,22 @@
+{
+  "databaseFile": "data/varde.sqlite",
+  "maxCharacters": 4,
+  "saveIntervalMs": 60000,
+  "positionSyncMs": 15000,
+  "startingMoney": {
+    "cash": 500,
+    "bank": 5000
+  },
+  "defaultJob": {
+    "name": "unemployed",
+    "label": "Unemployed",
+    "grade": 0,
+    "onDuty": false
+  },
+  "defaultSpawn": {
+    "x": -1037.72,
+    "y": -2737.87,
+    "z": 20.17,
+    "heading": 329.0
+  }
+}
