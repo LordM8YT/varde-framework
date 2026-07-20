@@ -26,6 +26,7 @@ ensure varde_core
 ensure varde_jobs
 ensure varde_inventory
 ensure varde_admin
+ensure varde_phone
 ensure varde_identity
 ensure varde_example
 

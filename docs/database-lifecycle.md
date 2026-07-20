@@ -9,6 +9,7 @@ No resource writes another resource's tables.
 | `varde_jobs` | `data/jobs.sqlite` | job assignments and audit |
 | `varde_inventory` | `data/inventory.sqlite` | containers, items, audit |
 | `varde_admin` | `data/admin.sqlite` | admin audit |
+| `varde_phone` | `data/phone.sqlite` | numbers, contacts, messages |
 
 Runtime database files and backups are ignored by Git.
 

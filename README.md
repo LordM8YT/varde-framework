@@ -28,6 +28,7 @@ resources/
     varde_jobs/       Jobs, grades, duty, and permissions
     varde_inventory/  Server-authoritative items and containers
     varde_admin/      ACE-secured operations and audit panel
+    varde_phone/      Contacts and offline text messaging
     varde_example/    Commands showing the public API
 server.cfg.example       Minimal development configuration
 ```
@@ -63,6 +64,9 @@ Item, container, and transfer APIs are documented in
 
 Administration permissions and actions are documented in
 [varde_admin](<resources/[varde]/varde_admin/README.md>).
+
+The text-only communication MVP is documented in
+[varde_phone](<resources/[varde]/varde_phone/README.md>).
 
 ## License
 
