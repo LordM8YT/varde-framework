@@ -14,12 +14,16 @@ function createHarness(t) {
   const events = [];
   const states = [];
   const logs = [];
+  const serverEvents = [];
   const runtime = {
     emitClient(source, eventName, ...args) {
       events.push({ source, eventName, args });
     },
     setPlayerState(source, key, value, replicated) {
       states.push({ source, key, value, replicated });
+    },
+    emitServer(eventName, ...args) {
+      serverEvents.push({ eventName, args });
     },
     log(level, message) {
       logs.push({ level, message });
@@ -42,11 +46,11 @@ function createHarness(t) {
     database.close();
     fs.rmSync(directory, { recursive: true, force: true });
   });
-  return { service, events, states, logs };
+  return { service, events, states, logs, serverEvents };
 }
 
 test('account, character, login, mutation, and logout form one lifecycle', (t) => {
-  const { service, events, states } = createHarness(t);
+  const { service, events, states, serverEvents } = createHarness(t);
   service.attachConnection(
     12,
     'license2:lifecycle',
@@ -77,6 +81,12 @@ test('account, character, login, mutation, and logout form one lifecycle', (t) =
         state.key === 'varde:loaded' &&
         state.value === true &&
         state.replicated === true,
+    ),
+    true,
+  );
+  assert.equal(
+    serverEvents.some(
+      (event) => event.eventName === 'varde:server:playerLoaded',
     ),
     true,
   );

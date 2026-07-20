@@ -17,6 +17,7 @@ test('Cfx wiring boots and completes connection, creation, and selection', () =>
   const registeredExports = new Map();
   const emitted = [];
   const states = [];
+  const localEvents = [];
   const logs = [];
   let timerId = 0;
 
@@ -68,6 +69,9 @@ test('Cfx wiring boots and completes connection, creation, and selection', () =>
     },
     emitNet(eventName, source, ...args) {
       emitted.push({ eventName, source, args });
+    },
+    emit(eventName, ...args) {
+      localEvents.push({ eventName, args });
     },
     on(eventName, handler) {
       eventHandlers.set(eventName, handler);
