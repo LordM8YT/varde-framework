@@ -8,6 +8,7 @@ crashes/
 logs/
 profiler/
 txData/
+backups/
 
 # Local editor and OS files
 .idea/

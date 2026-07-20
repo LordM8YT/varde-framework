@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Use Node 26
+        uses: actions/setup-node@v4
+        with:
+          node-version: "26"
+
+      - name: Install Lua 5.4 compiler
+        run: sudo apt-get update && sudo apt-get install --yes lua5.4
+
+      - name: Run resource and repository tests
+        run: npm test
+        env:
+          VARDE_REQUIRE_LUAC: "1"
+
+      - name: Check patch whitespace
+        run: git diff --check
