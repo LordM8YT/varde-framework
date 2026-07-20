@@ -25,12 +25,14 @@ set varde_saveIntervalMs 60000
 ensure varde_core
 ensure varde_jobs
 ensure varde_inventory
+ensure varde_admin
 ensure varde_identity
 ensure varde_example
 
 # Job-management commands are denied to players unless their principal inherits
 # this ACE. Example:
 # add_ace group.admin varde.jobs.manage allow
+# add_ace group.admin varde.admin allow
 
 # Add this locally. Never commit a real key.
 # sv_licenseKey "..."

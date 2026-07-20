@@ -1,0 +1,6 @@
+{
+  "databaseFile": "data/admin.sqlite",
+  "auditRetentionDays": 180,
+  "requestLimit": 12,
+  "requestWindowMs": 10000
+}

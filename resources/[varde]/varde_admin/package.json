@@ -1,0 +1,13 @@
+{
+  "name": "varde-admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ACE-secured administration for Varde Framework",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
