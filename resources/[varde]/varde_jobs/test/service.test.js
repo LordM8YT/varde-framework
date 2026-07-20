@@ -53,6 +53,7 @@ function createHarness(t) {
         unemployed: {
           label: 'Unemployed',
           type: 'civilian',
+          dutyPoints: [],
           grades: {
             0: { label: 'Citizen', payment: 0, permissions: [] },
           },
@@ -60,6 +61,9 @@ function createHarness(t) {
         police: {
           label: 'Police',
           type: 'leo',
+          dutyPoints: [
+            { label: 'Test station', x: 10, y: 20, z: 30, radius: 2 },
+          ],
           grades: {
             0: {
               label: 'Cadet',
@@ -124,4 +128,29 @@ test('unknown grades and the job limit are rejected', (t) => {
   assert.throws(() => service.assign(7, 'missing', 0), {
     code: 'JOB_NOT_FOUND',
   });
+});
+
+test('duty points require an assignment and server-verified proximity', (t) => {
+  const { service } = createHarness(t);
+  service.sync(7);
+  service.assign(7, 'police', 0);
+
+  assert.throws(
+    () => service.clockAtDutyPoint(7, 'police', { x: 100, y: 100, z: 30 }),
+    { code: 'DUTY_POINT_REQUIRED' },
+  );
+  const clockedIn = service.clockAtDutyPoint(7, 'police', {
+    x: 10.5,
+    y: 20,
+    z: 30,
+  });
+  assert.equal(clockedIn.activeJob.name, 'police');
+  assert.equal(clockedIn.activeJob.onDuty, true);
+
+  const clockedOut = service.clockAtDutyPoint(7, 'police', {
+    x: 10,
+    y: 20,
+    z: 30,
+  });
+  assert.equal(clockedOut.activeJob.onDuty, false);
 });

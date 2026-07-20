@@ -116,6 +116,10 @@ on('varde:server:playerDropped', (_source, characterId) => {
   handle(0, () => jobs.clearDuty(characterId, 'disconnect'));
 });
 
+on('varde:server:characterDeleted', (_source, characterId) => {
+  handle(0, () => jobs.deleteCharacter(characterId));
+});
+
 onNet('varde_jobs:server:request', () => {
   const source = Number(global.source);
   if (rateLimit(source, 'request', 500)) {
@@ -130,10 +134,26 @@ onNet('varde_jobs:server:setActive', (jobName) => {
   }
 });
 
-onNet('varde_jobs:server:toggleDuty', () => {
+onNet('varde_jobs:server:clock', (jobName) => {
   const source = Number(global.source);
   if (rateLimit(source, 'duty', 1000)) {
-    handle(source, () => jobs.toggleDuty(source));
+    handle(source, () => {
+      const ped = GetPlayerPed(String(source));
+      const raw = ped ? GetEntityCoords(ped) : null;
+      const coordinates = raw
+        ? {
+            x: Number(raw[0] ?? raw.x),
+            y: Number(raw[1] ?? raw.y),
+            z: Number(raw[2] ?? raw.z),
+          }
+        : null;
+      return jobs.clockAtDutyPoint(
+        source,
+        jobName,
+        coordinates,
+        `source:${source}`,
+      );
+    });
   }
 });
 

@@ -25,6 +25,16 @@ function normalizeGrade(value) {
   return grade;
 }
 
+function normalizeCoordinates(value) {
+  const x = Number(value?.x);
+  const y = Number(value?.y);
+  const z = Number(value?.z);
+  if (![x, y, z].every(Number.isFinite)) {
+    throw jobsError('POSITION_INVALID', 'player position is unavailable');
+  }
+  return { x, y, z };
+}
+
 class JobsService {
   constructor(database, config, core, runtime) {
     this.database = database;
@@ -216,12 +226,50 @@ class JobsService {
     return this.setDuty(player.source, !active.onDuty, actor);
   }
 
+  clockAtDutyPoint(identifier, jobName, coordinates, actor = 'player') {
+    const player = this.resolveOnline(identifier);
+    const name = normalizeJobName(jobName);
+    const assignment = this.database.get(player.characterId, name);
+    if (!assignment) {
+      throw jobsError('JOB_NOT_ASSIGNED', `${name} is not assigned`);
+    }
+    const position = normalizeCoordinates(coordinates);
+    const points = this.config.jobs[name]?.dutyPoints || [];
+    const nearby = points.some((point) => {
+      const distance = Math.hypot(
+        position.x - point.x,
+        position.y - point.y,
+        position.z - point.z,
+      );
+      return distance <= point.radius + 1.5;
+    });
+    if (!nearby) {
+      throw jobsError(
+        'DUTY_POINT_REQUIRED',
+        'move closer to a configured duty point',
+      );
+    }
+
+    const active = this.database.active(player.characterId);
+    if (!active || active.name !== name) {
+      this.database.setActive(player.characterId, name, actor);
+      this.database.setDuty(player.characterId, name, true, actor);
+    } else {
+      this.database.setDuty(player.characterId, name, !active.onDuty, actor);
+    }
+    return this.sync(player.source);
+  }
+
   clearDuty(characterId, actor = 'system') {
     this.ensureDefaults(characterId);
     const active = this.database.active(characterId);
     if (active?.onDuty) {
       this.database.setDuty(characterId, active.name, false, actor);
     }
+  }
+
+  deleteCharacter(characterId) {
+    return this.database.deleteCharacter(String(characterId));
   }
 
   hasJob(identifier, jobName, minimumGrade = 0) {
@@ -271,6 +319,7 @@ class JobsService {
 
 module.exports = {
   JobsService,
+  normalizeCoordinates,
   normalizeGrade,
   normalizeJobName,
 };

@@ -26,6 +26,7 @@ resources/
     varde_core/       Framework core
     varde_identity/   Character and spawn UI
     varde_jobs/       Jobs, grades, duty, and permissions
+    varde_inventory/  Server-authoritative items and containers
     varde_example/    Commands showing the public API
 server.cfg.example       Minimal development configuration
 ```
@@ -41,6 +42,9 @@ installation, exports, events, and the security model.
 
 Job definitions and the permission API are documented in
 [varde_jobs](<resources/[varde]/varde_jobs/README.md>).
+
+Item, container, and transfer APIs are documented in
+[varde_inventory](<resources/[varde]/varde_inventory/README.md>).
 
 ## License
 

@@ -156,6 +156,12 @@ class JobsDatabase {
         WHERE character_id = ?
         ORDER BY id ASC
       `),
+      deleteAssignments: this.database.prepare(`
+        DELETE FROM job_assignments WHERE character_id = ?
+      `),
+      deleteAudit: this.database.prepare(`
+        DELETE FROM job_audit WHERE character_id = ?
+      `),
     };
   }
 
@@ -270,6 +276,16 @@ class JobsDatabase {
       actor: row.actor,
       createdAt: row.created_at,
     }));
+  }
+
+  deleteCharacter(characterId) {
+    return this.transaction(() => {
+      const assignments = Number(
+        this.statements.deleteAssignments.run(characterId).changes,
+      );
+      this.statements.deleteAudit.run(characterId);
+      return assignments;
+    });
   }
 
   close() {

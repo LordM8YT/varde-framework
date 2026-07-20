@@ -34,7 +34,18 @@ state bag are updated immediately after the jobs database.
 
 ## Commands and access
 
-Players can use `/jobs`, `/job <name>`, and `/duty`.
+Players can use `/jobs` and `/job <name>`. Duty changes happen at configured
+world markers with `E`; `/duty` points the player to those markers. The server
+checks the player's actual coordinates before changing duty state.
+
+Default test locations use accessible base-map exteriors and require no MLO:
+
+- Police: Mission Row
+- EMS: Pillbox Medical
+- Mechanic: La Mesa Customs
+
+Move or add points under `dutyPoints` in `config/jobs.json`. Each point can also
+define a map blip.
 
 Server admins can use `/assignjob <source> <job> <grade>` and
 `/removejob <source> <job>`. Grant access with:

@@ -17,6 +17,17 @@ function boundedInteger(value, minimum, maximum, label) {
   return result;
 }
 
+function finiteNumber(value, minimum, maximum, label) {
+  const result = Number(value);
+  if (!Number.isFinite(result) || result < minimum || result > maximum) {
+    throw jobsError(
+      'CONFIG_INVALID',
+      `${label} must be between ${minimum} and ${maximum}`,
+    );
+  }
+  return result;
+}
+
 function validateConfig(input, resourcePath = process.cwd()) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw jobsError('CONFIG_INVALID', 'jobs config must be an object');
@@ -94,7 +105,42 @@ function validateConfig(input, resourcePath = process.cwd()) {
     if (Object.keys(grades).length === 0) {
       throw jobsError('CONFIG_INVALID', `job ${name} must define at least one grade`);
     }
-    jobs[name] = { label, type, grades };
+    const dutyPoints = Array.isArray(value.dutyPoints)
+      ? value.dutyPoints.map((point, index) => {
+          if (!point || typeof point !== 'object' || Array.isArray(point)) {
+            throw jobsError(
+              'CONFIG_INVALID',
+              `${name} duty point ${index} is invalid`,
+            );
+          }
+          const pointLabel = String(point.label || label).trim();
+          if (!pointLabel || pointLabel.length > 64) {
+            throw jobsError(
+              'CONFIG_INVALID',
+              `${name} duty point ${index} has an invalid label`,
+            );
+          }
+          return {
+            label: pointLabel,
+            x: finiteNumber(point.x, -10000, 10000, `${name} duty x`),
+            y: finiteNumber(point.y, -10000, 10000, `${name} duty y`),
+            z: finiteNumber(point.z, -2000, 3000, `${name} duty z`),
+            radius: finiteNumber(
+              point.radius ?? 2,
+              0.5,
+              25,
+              `${name} duty radius`,
+            ),
+          };
+        })
+      : [];
+    if (dutyPoints.length > 25) {
+      throw jobsError(
+        'CONFIG_INVALID',
+        `job ${name} defines too many duty points`,
+      );
+    }
+    jobs[name] = { label, type, grades, dutyPoints };
   }
 
   if (!jobs[defaultJob]) {

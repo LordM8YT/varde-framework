@@ -1,0 +1,49 @@
+{
+  "databaseFile": "data/inventory.sqlite",
+  "playerSlots": 40,
+  "playerMaxWeight": 30000,
+  "items": {
+    "water": {
+      "label": "Water",
+      "weight": 500,
+      "stackable": true,
+      "maxStack": 10
+    },
+    "sandwich": {
+      "label": "Sandwich",
+      "weight": 300,
+      "stackable": true,
+      "maxStack": 10
+    },
+    "bandage": {
+      "label": "Bandage",
+      "weight": 100,
+      "stackable": true,
+      "maxStack": 20
+    },
+    "phone": {
+      "label": "Phone",
+      "weight": 250,
+      "stackable": false,
+      "maxStack": 1
+    },
+    "radio": {
+      "label": "Radio",
+      "weight": 750,
+      "stackable": false,
+      "maxStack": 1
+    },
+    "repairkit": {
+      "label": "Repair Kit",
+      "weight": 2500,
+      "stackable": true,
+      "maxStack": 2
+    },
+    "evidence_bag": {
+      "label": "Evidence Bag",
+      "weight": 50,
+      "stackable": false,
+      "maxStack": 1
+    }
+  }
+}
