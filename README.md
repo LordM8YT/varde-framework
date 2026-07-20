@@ -35,3 +35,7 @@ integration pass against the first public Cfx Server artifact.
 
 See [the core documentation](<resources/[varde]/varde_core/README.md>) for
 installation, exports, events, and the security model.
+
+## License
+
+Varde Framework is available under the [MIT License](LICENSE).
