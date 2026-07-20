@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Varde Phone</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main id="app" class="app is-hidden" aria-live="polite">
+        <section class="phone-shell" aria-label="Varde Phone">
+            <div class="speaker" aria-hidden="true"></div>
+
+            <div class="screen">
+                <header class="status-bar">
+                    <span id="clock">12:00</span>
+                    <span class="status-icons" aria-label="Connected">● 5G ▰</span>
+                </header>
+
+                <header class="app-header">
+                    <button id="back-button" class="icon-button is-hidden" type="button" aria-label="Back">
+                        ←
+                    </button>
+                    <div>
+                        <p id="header-kicker" class="eyebrow">Varde Phone</p>
+                        <h1 id="header-title">Messages</h1>
+                    </div>
+                    <button id="close-button" class="icon-button" type="button" aria-label="Close">
+                        ×
+                    </button>
+                </header>
+
+                <div class="content">
+                    <section id="messages-view" class="view">
+                        <div id="conversation-list" class="list"></div>
+                        <div id="messages-empty" class="empty-state">
+                            <div class="empty-icon" aria-hidden="true">✦</div>
+                            <h2>No messages yet</h2>
+                            <p>Add a contact, then start a private text conversation.</p>
+                        </div>
+                    </section>
+
+                    <section id="thread-view" class="view is-hidden">
+                        <div id="message-list" class="message-list"></div>
+                        <form id="message-form" class="composer">
+                            <label class="sr-only" for="message-input">Message</label>
+                            <textarea
+                                id="message-input"
+                                name="body"
+                                maxlength="500"
+                                rows="1"
+                                placeholder="Message…"
+                                required
+                            ></textarea>
+                            <button class="send-button" type="submit" aria-label="Send message">↑</button>
+                        </form>
+                    </section>
+
+                    <section id="contacts-view" class="view is-hidden">
+                        <button id="add-contact-button" class="add-contact" type="button">
+                            <span>＋</span>
+                            Add contact
+                        </button>
+                        <div id="contact-list" class="list"></div>
+                        <div id="contacts-empty" class="empty-state">
+                            <div class="empty-icon" aria-hidden="true">◇</div>
+                            <h2>No contacts</h2>
+                            <p>Save a registered Varde phone number here.</p>
+                        </div>
+                    </section>
+                </div>
+
+                <nav id="tab-bar" class="tab-bar" aria-label="Phone apps">
+                    <button class="tab is-active" data-view="messages" type="button">
+                        <span class="tab-icon">▰</span>
+                        Messages
+                        <span id="unread-badge" class="badge is-hidden">0</span>
+                    </button>
+                    <button class="tab" data-view="contacts" type="button">
+                        <span class="tab-icon">♙</span>
+                        Contacts
+                    </button>
+                </nav>
+            </div>
+
+            <div class="home-indicator" aria-hidden="true"></div>
+        </section>
+
+        <div id="toast" class="toast is-hidden" role="status"></div>
+
+        <dialog id="contact-dialog">
+            <form id="contact-form">
+                <p class="eyebrow">New contact</p>
+                <h2>Save a number</h2>
+                <label class="field">
+                    <span>Name</span>
+                    <input name="name" minlength="1" maxlength="48" autocomplete="off" required>
+                </label>
+                <label class="field">
+                    <span>Phone number</span>
+                    <input name="phoneNumber" inputmode="numeric" minlength="8" maxlength="15" required>
+                </label>
+                <div class="dialog-actions">
+                    <button id="contact-cancel" class="button button-ghost" type="button">Cancel</button>
+                    <button class="button button-primary" type="submit">Save contact</button>
+                </div>
+            </form>
+        </dialog>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

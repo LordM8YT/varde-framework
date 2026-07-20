@@ -1,0 +1,560 @@
+:root {
+    color: #f2f5f3;
+    background: transparent;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-synthesis: none;
+    --ink: #f2f5f3;
+    --muted: #98a29d;
+    --surface: #151b19;
+    --surface-raised: #1c2421;
+    --line: rgba(255, 255, 255, 0.09);
+    --accent: #d6ff63;
+    --accent-dark: #1b2404;
+    --danger: #ff6b6b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.is-hidden {
+    display: none !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.app {
+    display: grid;
+    align-items: end;
+    justify-items: end;
+    min-height: 100vh;
+    padding: 28px 42px;
+    background: linear-gradient(90deg, transparent 40%, rgba(3, 5, 4, 0.22));
+}
+
+.phone-shell {
+    position: relative;
+    width: min(390px, calc(100vw - 32px));
+    height: min(790px, calc(100vh - 42px));
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 42px;
+    background: #080b0a;
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.58),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.04);
+}
+
+.speaker {
+    position: absolute;
+    top: 17px;
+    left: 50%;
+    z-index: 5;
+    width: 80px;
+    height: 20px;
+    border-radius: 20px;
+    background: #050706;
+    transform: translateX(-50%);
+}
+
+.screen {
+    display: grid;
+    grid-template-rows: 34px 76px minmax(0, 1fr) 68px;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 33px;
+    background:
+        radial-gradient(circle at 90% 5%, rgba(214, 255, 99, 0.08), transparent 28%),
+        #0d1210;
+}
+
+.status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.status-icons {
+    letter-spacing: 0.05em;
+}
+
+.app-header {
+    display: grid;
+    grid-template-columns: 38px 1fr 38px;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 16px 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.app-header > div {
+    min-width: 0;
+}
+
+.eyebrow {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+    margin-top: 0;
+}
+
+h1,
+h2 {
+    margin-bottom: 0;
+    letter-spacing: -0.04em;
+}
+
+h1 {
+    overflow: hidden;
+    font-size: 23px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+h2 {
+    font-size: 22px;
+}
+
+.icon-button {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.02);
+    font-size: 20px;
+}
+
+.content {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.view {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.list {
+    display: grid;
+}
+
+.conversation,
+.contact {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 72px;
+    padding: 12px 18px;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    background: transparent;
+    text-align: left;
+}
+
+.conversation:hover,
+.conversation:focus-visible,
+.contact:hover,
+.contact:focus-visible {
+    background: var(--surface);
+    outline: none;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: #10150b;
+    background: var(--accent);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.row-copy {
+    min-width: 0;
+}
+
+.row-copy strong,
+.row-copy small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.row-copy small {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.row-meta {
+    display: grid;
+    justify-items: end;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.unread-dot,
+.badge {
+    display: grid;
+    place-items: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border-radius: 99px;
+    color: #10150b;
+    background: var(--accent);
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.empty-state {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    height: 100%;
+    padding: 34px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.empty-state h2 {
+    margin-top: 14px;
+    color: var(--ink);
+}
+
+.empty-state p {
+    max-width: 260px;
+    margin: 10px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.empty-icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border: 1px solid rgba(214, 255, 99, 0.35);
+    border-radius: 50%;
+    color: var(--accent);
+    background: var(--accent-dark);
+    font-size: 25px;
+}
+
+#thread-view {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
+}
+
+.message-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding: 18px;
+    overflow-y: auto;
+}
+
+.bubble {
+    max-width: 82%;
+    padding: 10px 12px;
+    border-radius: 15px 15px 15px 4px;
+    color: var(--ink);
+    background: var(--surface-raised);
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.bubble.is-outgoing {
+    align-self: flex-end;
+    border-radius: 15px 15px 4px 15px;
+    color: #10150b;
+    background: var(--accent);
+}
+
+.bubble time {
+    display: block;
+    margin-top: 5px;
+    color: inherit;
+    font-size: 8px;
+    opacity: 0.62;
+}
+
+.composer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    gap: 8px;
+    padding: 10px 12px 14px;
+    border-top: 1px solid var(--line);
+    background: #0d1210;
+}
+
+.composer textarea {
+    width: 100%;
+    min-height: 42px;
+    max-height: 100px;
+    padding: 11px 13px;
+    resize: none;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    color: var(--ink);
+    background: var(--surface);
+    outline: none;
+}
+
+.composer textarea:focus {
+    border-color: var(--accent);
+}
+
+.send-button {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 50%;
+    color: #10150b;
+    background: var(--accent);
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.add-contact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: calc(100% - 28px);
+    min-height: 48px;
+    margin: 14px;
+    padding: 0 15px;
+    border: 1px dashed rgba(214, 255, 99, 0.45);
+    border-radius: 4px;
+    color: var(--accent);
+    background: var(--accent-dark);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.contact-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.mini-button {
+    min-height: 30px;
+    padding: 0 8px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--muted);
+    background: transparent;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.mini-button.is-danger {
+    color: var(--danger);
+}
+
+.tab-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--line);
+    background: rgba(12, 16, 15, 0.98);
+}
+
+.tab {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 4px;
+    border: 0;
+    color: var(--muted);
+    background: transparent;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.tab.is-active {
+    color: var(--accent);
+}
+
+.tab-icon {
+    font-size: 18px;
+}
+
+.tab .badge {
+    position: absolute;
+    top: 7px;
+    right: calc(50% - 28px);
+}
+
+.home-indicator {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 110px;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.45);
+    transform: translateX(-50%);
+}
+
+.toast {
+    position: fixed;
+    right: 460px;
+    bottom: 48px;
+    max-width: 360px;
+    padding: 13px 16px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    background: #111715;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+}
+
+.toast.is-error {
+    border-left-color: var(--danger);
+}
+
+dialog {
+    width: min(350px, calc(100vw - 40px));
+    padding: 26px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    background: #111715;
+}
+
+dialog::backdrop {
+    background: rgba(3, 5, 4, 0.72);
+    backdrop-filter: blur(6px);
+}
+
+.field {
+    display: grid;
+    gap: 7px;
+    margin-top: 17px;
+}
+
+.field span {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.field input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--ink);
+    background: #0e1311;
+    outline: none;
+}
+
+.field input:focus {
+    border-color: var(--accent);
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 22px;
+}
+
+.button {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.button-primary {
+    color: #10150b;
+    background: var(--accent);
+}
+
+.button-ghost {
+    border-color: var(--line);
+    color: var(--ink);
+    background: transparent;
+}
+
+@media (max-width: 600px), (max-height: 700px) {
+    .app {
+        place-items: center;
+        padding: 12px;
+    }
+
+    .phone-shell {
+        height: min(680px, calc(100vh - 18px));
+        border-radius: 32px;
+    }
+
+    .screen {
+        border-radius: 24px;
+    }
+
+    .toast {
+        right: 22px;
+        bottom: 22px;
+    }
+}

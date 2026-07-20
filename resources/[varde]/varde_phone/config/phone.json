@@ -1,0 +1,9 @@
+{
+  "databaseFile": "data/phone.sqlite",
+  "numberPrefix": "5",
+  "numberLength": 8,
+  "requirePhoneItem": false,
+  "phoneItem": "phone",
+  "messageMaxLength": 500,
+  "conversationPageSize": 50
+}

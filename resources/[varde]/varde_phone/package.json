@@ -1,0 +1,13 @@
+{
+  "name": "varde-phone",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Text-first phone for Varde Framework",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
