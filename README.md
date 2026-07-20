@@ -7,6 +7,7 @@ The first milestone is intentionally small:
 
 - account creation from the player's Cfx license
 - multiple persistent characters
+- responsive character selection, creation, deletion, and spawn UI
 - server-authoritative sessions
 - persistent cash and bank balances with an audit ledger
 - jobs, metadata, and last position
@@ -23,6 +24,7 @@ Server. Client gameplay code uses Lua 5.4.
 resources/
   [varde]/
     varde_core/       Framework core
+    varde_identity/   Character and spawn UI
     varde_example/    Commands showing the public API
 server.cfg.example       Minimal development configuration
 ```

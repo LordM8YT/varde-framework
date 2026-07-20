@@ -162,6 +162,11 @@ class FrameworkDatabase {
       getCharacterByPublicId: this.database.prepare(`
         SELECT * FROM characters WHERE public_id = ?
       `),
+      deleteOwnedCharacter: this.database.prepare(`
+        DELETE FROM characters
+        WHERE account_id = ? AND public_id = ?
+        RETURNING id
+      `),
       listWallets: this.database.prepare(`
         SELECT currency, balance FROM wallets WHERE character_id = ?
       `),
@@ -299,6 +304,10 @@ class FrameworkDatabase {
   loadCharacter(publicId) {
     const row = this.statements.getCharacterByPublicId.get(publicId);
     return row ? this.hydrateCharacter(row) : null;
+  }
+
+  deleteOwnedCharacter(accountId, publicId) {
+    return Boolean(this.statements.deleteOwnedCharacter.get(accountId, publicId));
   }
 
   hydrateCharacter(row) {

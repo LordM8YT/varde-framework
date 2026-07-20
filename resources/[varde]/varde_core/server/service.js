@@ -167,6 +167,13 @@ class CoreService {
       .map(characterSummary);
   }
 
+  characterBootstrap(source) {
+    return {
+      characters: this.listCharacters(source),
+      maxCharacters: this.config.maxCharacters,
+    };
+  }
+
   createCharacter(source, input) {
     const { context } = this.requireContext(source);
     if (context.player) {
@@ -182,6 +189,28 @@ class CoreService {
       this.config,
     );
     return characterSummary(character);
+  }
+
+  deleteCharacter(source, characterId, confirmation) {
+    const { context } = this.requireContext(source);
+    if (context.player) {
+      throw frameworkError(
+        'ALREADY_LOGGED_IN',
+        'log out before deleting a character',
+      );
+    }
+
+    const id = validateCharacterId(characterId);
+    if (confirmation !== id) {
+      throw frameworkError(
+        'DELETE_CONFIRMATION_REQUIRED',
+        'character deletion was not confirmed',
+      );
+    }
+    if (!this.database.deleteOwnedCharacter(context.account.id, id)) {
+      throw frameworkError('CHARACTER_NOT_FOUND', 'character was not found');
+    }
+    return true;
   }
 
   selectCharacter(source, characterId) {

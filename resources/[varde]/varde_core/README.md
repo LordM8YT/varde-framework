@@ -74,6 +74,7 @@ Failures return:
 
 ```lua
 local response = exports.varde_core:ListCharacters()
+local response = exports.varde_core:GetCharacterBootstrap()
 
 local response = exports.varde_core:CreateCharacter({
     slot = 1,
@@ -85,10 +86,14 @@ local response = exports.varde_core:CreateCharacter({
 })
 
 local response = exports.varde_core:SelectCharacter('vrd_0123456789abcdef')
+local response = exports.varde_core:DeleteCharacter('vrd_0123456789abcdef')
 local response = exports.varde_core:Logout()
 
 local playerData = exports.varde_core:GetPlayerData()
 local loggedIn = exports.varde_core:IsLoggedIn()
+
+-- Used by spawn/identity resources. The position must contain x, y, z, heading.
+exports.varde_core:SpawnAt(position)
 ```
 
 ### Generic RPC API
@@ -114,6 +119,17 @@ An `identifier` can be an online server ID or an online `characterId`.
 
 ```lua
 local player = exports.varde_core:GetPlayerData(source)
+```
+
+Characters can also be deleted from a trusted server resource while the owning
+player is logged out:
+
+```lua
+local result = exports.varde_core:DeleteCharacter(
+    source,
+    characterId,
+    characterId
+)
 ```
 
 Mutation exports return the same `ok/data/error` envelope used by client calls:
@@ -223,6 +239,8 @@ state bags.
 
 - The server owns all persistent state.
 - A client may list, create, select, and log out only its own characters.
+- Character deletion requires ownership, an exact confirmation value, and a
+  logged-out session.
 - Rockstar `license2` is preferred, with `license` as fallback.
 - IP identifiers are not persisted.
 - RPC envelopes and payload sizes are validated.
