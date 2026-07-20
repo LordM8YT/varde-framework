@@ -1,0 +1,120 @@
+{
+  "databaseFile": "data/jobs.sqlite",
+  "defaultJob": "unemployed",
+  "maxJobs": 5,
+  "permissionRequiresDuty": true,
+  "jobs": {
+    "unemployed": {
+      "label": "Unemployed",
+      "type": "civilian",
+      "grades": {
+        "0": {
+          "label": "Citizen",
+          "payment": 0,
+          "permissions": []
+        }
+      }
+    },
+    "police": {
+      "label": "Police",
+      "type": "leo",
+      "grades": {
+        "0": {
+          "label": "Cadet",
+          "payment": 500,
+          "permissions": [
+            "police.duty",
+            "police.records.read"
+          ]
+        },
+        "1": {
+          "label": "Officer",
+          "payment": 750,
+          "permissions": [
+            "police.duty",
+            "police.records.read",
+            "police.records.write",
+            "police.evidence"
+          ]
+        },
+        "2": {
+          "label": "Sergeant",
+          "payment": 1000,
+          "permissions": [
+            "police.duty",
+            "police.records.read",
+            "police.records.write",
+            "police.evidence",
+            "police.manage"
+          ]
+        }
+      }
+    },
+    "ambulance": {
+      "label": "Emergency Medical Services",
+      "type": "ems",
+      "grades": {
+        "0": {
+          "label": "Trainee",
+          "payment": 500,
+          "permissions": [
+            "ems.duty",
+            "ems.patient.read"
+          ]
+        },
+        "1": {
+          "label": "Paramedic",
+          "payment": 750,
+          "permissions": [
+            "ems.duty",
+            "ems.patient.read",
+            "ems.patient.write"
+          ]
+        },
+        "2": {
+          "label": "Chief",
+          "payment": 1000,
+          "permissions": [
+            "ems.duty",
+            "ems.patient.read",
+            "ems.patient.write",
+            "ems.manage"
+          ]
+        }
+      }
+    },
+    "mechanic": {
+      "label": "Mechanic",
+      "type": "business",
+      "grades": {
+        "0": {
+          "label": "Apprentice",
+          "payment": 400,
+          "permissions": [
+            "mechanic.duty",
+            "mechanic.repair"
+          ]
+        },
+        "1": {
+          "label": "Mechanic",
+          "payment": 650,
+          "permissions": [
+            "mechanic.duty",
+            "mechanic.repair",
+            "mechanic.invoice"
+          ]
+        },
+        "2": {
+          "label": "Owner",
+          "payment": 900,
+          "permissions": [
+            "mechanic.duty",
+            "mechanic.repair",
+            "mechanic.invoice",
+            "mechanic.manage"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -65,6 +65,9 @@ function validateJob(value) {
   const name = String(value.name || '').trim();
   const label = String(value.label || '').trim();
   const grade = Number(value.grade);
+  const type = String(value.type || 'civilian').trim();
+  const gradeLabel = String(value.gradeLabel || label).trim();
+  const payment = Number(value.payment || 0);
   if (!JOB_NAME_PATTERN.test(name)) {
     throw frameworkError('VALIDATION_ERROR', 'job.name is invalid');
   }
@@ -74,11 +77,29 @@ function validateJob(value) {
   if (!Number.isSafeInteger(grade) || grade < 0 || grade > 1000) {
     throw frameworkError('VALIDATION_ERROR', 'job.grade must be between 0 and 1000');
   }
+  if (!JOB_NAME_PATTERN.test(type)) {
+    throw frameworkError('VALIDATION_ERROR', 'job.type is invalid');
+  }
+  if (!gradeLabel || gradeLabel.length > 64) {
+    throw frameworkError(
+      'VALIDATION_ERROR',
+      'job.gradeLabel must contain 1-64 characters',
+    );
+  }
+  if (!Number.isSafeInteger(payment) || payment < 0 || payment > 1_000_000) {
+    throw frameworkError(
+      'VALIDATION_ERROR',
+      'job.payment must be between 0 and 1000000',
+    );
+  }
 
   return {
     name,
     label,
+    type,
     grade,
+    gradeLabel,
+    payment,
     onDuty: value.onDuty === true,
   };
 }
@@ -234,6 +255,7 @@ class CoreService {
     this.setPublicState(playerSource, character);
     const snapshot = publicSnapshot(character);
     this.runtime.emitClient(playerSource, 'varde:client:playerLoaded', snapshot);
+    this.runtime.emitServer('varde:server:playerLoaded', playerSource, snapshot);
     this.runtime.log(
       'info',
       `source ${playerSource} selected character ${character.characterId}`,
@@ -244,6 +266,11 @@ class CoreService {
   logout(source) {
     const { playerSource, context, player } = this.requirePlayer(source);
     this.database.saveCharacter(player);
+    this.runtime.emitServer(
+      'varde:server:playerLoggedOut',
+      playerSource,
+      player.characterId,
+    );
     context.player = null;
     this.clearPublicState(playerSource);
     this.runtime.emitClient(playerSource, 'varde:client:playerLoggedOut');
@@ -257,6 +284,11 @@ class CoreService {
       return;
     }
     if (context.player) {
+      this.runtime.emitServer(
+        'varde:server:playerDropped',
+        playerSource,
+        context.player.characterId,
+      );
       this.database.saveCharacter(context.player);
     }
     this.contexts.delete(playerSource);
@@ -354,6 +386,11 @@ class CoreService {
       true,
     );
     this.syncOwner(player);
+    this.runtime.emitServer(
+      'varde:server:jobUpdated',
+      player.source,
+      clone(player.job),
+    );
     return clone(player.job);
   }
 

@@ -19,6 +19,9 @@ const runtime = {
   emitClient(source, eventName, ...args) {
     emitNet(eventName, source, ...args);
   },
+  emitServer(eventName, ...args) {
+    emit(eventName, ...args);
+  },
   setPlayerState(source, key, value, replicated) {
     Player(String(source)).state.set(key, value, replicated);
   },
@@ -210,6 +213,10 @@ on('playerDropped', () => {
 });
 
 exports('GetPlayerData', (identifier) => core.getPlayerData(identifier));
+exports('GetPlayerSource', (characterId) => {
+  const player = core.getPlayer(characterId);
+  return player ? player.source : 0;
+});
 exports('DeleteCharacter', (source, characterId, confirmation) =>
   exportResult(() => {
     ensurePrepared(source);

@@ -25,6 +25,7 @@ resources/
   [varde]/
     varde_core/       Framework core
     varde_identity/   Character and spawn UI
+    varde_jobs/       Jobs, grades, duty, and permissions
     varde_example/    Commands showing the public API
 server.cfg.example       Minimal development configuration
 ```
@@ -37,6 +38,9 @@ integration pass against the first public Cfx Server artifact.
 
 See [the core documentation](<resources/[varde]/varde_core/README.md>) for
 installation, exports, events, and the security model.
+
+Job definitions and the permission API are documented in
+[varde_jobs](<resources/[varde]/varde_jobs/README.md>).
 
 ## License
 

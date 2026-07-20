@@ -1,8 +1,8 @@
 # varde_core
 
-`varde_core` is the first resource in the Varde Framework. It owns
-accounts, characters, online sessions, money, jobs, metadata, and last known
-positions.
+`varde_core` is the first resource in the Varde Framework. It owns accounts,
+characters, online sessions, money, the active-job snapshot, metadata, and last
+known positions. Persistent job assignments are owned by `varde_jobs`.
 
 It is not a fork and has no runtime dependency on another roleplay framework.
 
@@ -17,13 +17,14 @@ The resource has no package-manager or database-server dependency.
 
 ## Start it
 
-Place both resources under a server's `resources/[varde]` directory and add:
+Place the resources under a server's `resources/[varde]` directory and add:
 
 ```cfg
 set onesync on
 set sv_stateBagStrictMode true
 
 ensure varde_core
+ensure varde_jobs
 ensure varde_example
 ```
 
@@ -119,6 +120,7 @@ An `identifier` can be an online server ID or an online `characterId`.
 
 ```lua
 local player = exports.varde_core:GetPlayerData(source)
+local source = exports.varde_core:GetPlayerSource(characterId)
 ```
 
 Characters can also be deleted from a trusted server resource while the owning
@@ -168,7 +170,10 @@ local result = exports.varde_core:SetMetadata(
 local result = exports.varde_core:SetJob(source, {
     name = 'police',
     label = 'Police',
-    grade = 0,
+    type = 'leo',
+    grade = 1,
+    gradeLabel = 'Officer',
+    payment = 750,
     onDuty = false
 })
 
@@ -195,6 +200,11 @@ end)
 
 `playerUpdated` currently fires after money, metadata, or job changes.
 
+Server resources can listen for `varde:server:playerLoaded`,
+`varde:server:playerLoggedOut`, `varde:server:playerDropped`, and
+`varde:server:jobUpdated`. These are local server events; clients cannot invoke
+them over the network.
+
 ## Player data
 
 The owner-only snapshot has this shape:
@@ -211,7 +221,10 @@ profile
 job
   name
   label
+  type
   grade
+  gradeLabel
+  payment
   onDuty
 position
   x
