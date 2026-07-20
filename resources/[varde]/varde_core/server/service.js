@@ -213,7 +213,7 @@ class CoreService {
   }
 
   deleteCharacter(source, characterId, confirmation) {
-    const { context } = this.requireContext(source);
+    const { playerSource, context } = this.requireContext(source);
     if (context.player) {
       throw frameworkError(
         'ALREADY_LOGGED_IN',
@@ -231,6 +231,7 @@ class CoreService {
     if (!this.database.deleteOwnedCharacter(context.account.id, id)) {
       throw frameworkError('CHARACTER_NOT_FOUND', 'character was not found');
     }
+    this.runtime.emitServer('varde:server:characterDeleted', playerSource, id);
     return true;
   }
 

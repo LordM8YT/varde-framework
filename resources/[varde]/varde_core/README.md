@@ -201,9 +201,9 @@ end)
 `playerUpdated` currently fires after money, metadata, or job changes.
 
 Server resources can listen for `varde:server:playerLoaded`,
-`varde:server:playerLoggedOut`, `varde:server:playerDropped`, and
-`varde:server:jobUpdated`. These are local server events; clients cannot invoke
-them over the network.
+`varde:server:playerLoggedOut`, `varde:server:playerDropped`,
+`varde:server:characterDeleted`, and `varde:server:jobUpdated`. These are local
+server events; clients cannot invoke them over the network.
 
 ## Player data
 

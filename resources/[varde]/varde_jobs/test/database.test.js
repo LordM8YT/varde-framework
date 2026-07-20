@@ -48,3 +48,13 @@ test('removing an assignment reports whether it was active', (t) => {
   assert.equal(database.count(characterId), 0);
   assert.equal(database.remove(characterId, 'unemployed', 'test'), null);
 });
+
+test('character deletion removes assignments and their audit rows', (t) => {
+  const database = createDatabase(t);
+  const characterId = 'vrd_aabbccddeeff0011';
+  database.assign(characterId, 'unemployed', 0, 'test');
+
+  assert.equal(database.deleteCharacter(characterId), 1);
+  assert.deepEqual(database.list(characterId), []);
+  assert.deepEqual(database.listAudit(characterId), []);
+});

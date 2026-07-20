@@ -1,0 +1,13 @@
+{
+  "name": "varde-inventory",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Server-authoritative inventory primitives for Varde Framework",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

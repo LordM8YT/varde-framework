@@ -122,7 +122,7 @@ test('the same Rockstar account cannot connect twice', (t) => {
 });
 
 test('character deletion requires ownership and exact confirmation', (t) => {
-  const { service } = createHarness(t);
+  const { service, serverEvents } = createHarness(t);
   service.attachConnection(7, 'license2:delete', ['license2:delete'], 'Delete');
   const created = service.createCharacter(7, {
     slot: 1,
@@ -145,4 +145,12 @@ test('character deletion requires ownership and exact confirmation', (t) => {
     true,
   );
   assert.equal(service.listCharacters(7).length, 0);
+  assert.equal(
+    serverEvents.some(
+      (event) =>
+        event.eventName === 'varde:server:characterDeleted' &&
+        event.args[1] === created.characterId,
+    ),
+    true,
+  );
 });
