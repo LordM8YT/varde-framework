@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Varde Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main id="app" class="app is-hidden" aria-live="polite">
+        <div class="ambient-grid" aria-hidden="true"></div>
+
+        <header class="topbar">
+            <div class="brand">
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <path d="M15 49h34L42 38H22l-7 11Z"></path>
+                    <path d="M21 34h22l-6-9H27l-6 9Z"></path>
+                    <path d="M28 21h8l-4-7-4 7Z"></path>
+                </svg>
+                <div>
+                    <p class="eyebrow">Operations console</p>
+                    <h1>Varde Admin</h1>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <button id="audit-button" class="button button-ghost" type="button">
+                    Audit
+                </button>
+                <button id="refresh-button" class="button button-ghost" type="button">
+                    Refresh
+                </button>
+                <button id="close-button" class="icon-button" type="button" aria-label="Close">
+                    ×
+                </button>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <aside class="roster">
+                <label class="search">
+                    <span class="sr-only">Search players</span>
+                    <input id="player-search" type="search" placeholder="Search name, ID, job…">
+                </label>
+                <div class="roster-heading">
+                    <p class="section-label">Online players</p>
+                    <span id="player-count" class="counter">0</span>
+                </div>
+                <div id="player-list" class="player-list"></div>
+            </aside>
+
+            <section class="detail">
+                <div id="empty-state" class="empty-state">
+                    <p class="eyebrow">No target selected</p>
+                    <h2>Choose a player</h2>
+                    <p>Actions are permission-gated on the server and written to the audit log.</p>
+                </div>
+
+                <div id="player-detail" class="is-hidden">
+                    <header class="player-header">
+                        <div>
+                            <p id="selected-source" class="eyebrow"></p>
+                            <h2 id="selected-name"></h2>
+                            <p id="selected-character" class="mono"></p>
+                        </div>
+                        <div class="status-pills">
+                            <span id="selected-job" class="pill"></span>
+                            <span id="selected-ping" class="pill"></span>
+                        </div>
+                    </header>
+
+                    <section class="action-section" data-permission="varde.admin.teleport">
+                        <p class="section-label">Position</p>
+                        <div class="quick-actions">
+                            <button class="button button-ghost" data-action="player:goto">Go to</button>
+                            <button class="button button-ghost" data-action="player:bring">Bring</button>
+                        </div>
+                    </section>
+
+                    <section class="action-section" data-permission="varde.admin.moderation">
+                        <p class="section-label">Moderation</p>
+                        <div class="quick-actions">
+                            <button class="button button-ghost" data-action="player:heal">Heal</button>
+                            <button id="freeze-button" class="button button-ghost" data-action="player:freeze">
+                                Freeze
+                            </button>
+                            <button id="kick-button" class="button button-danger" type="button">Kick</button>
+                        </div>
+                    </section>
+
+                    <div class="form-grid">
+                        <form id="economy-form" class="action-card" data-permission="varde.admin.economy">
+                            <p class="section-label">Economy</p>
+                            <h3>Set balance</h3>
+                            <div class="field-row">
+                                <label class="field">
+                                    <span>Wallet</span>
+                                    <select name="currency">
+                                        <option value="cash">Cash</option>
+                                        <option value="bank">Bank</option>
+                                    </select>
+                                </label>
+                                <label class="field">
+                                    <span>Amount</span>
+                                    <input name="amount" type="number" min="0" max="1000000000" required>
+                                </label>
+                            </div>
+                            <button class="button button-primary" type="submit">Apply balance</button>
+                        </form>
+
+                        <form id="job-form" class="action-card" data-permission="varde.admin.jobs">
+                            <p class="section-label">Employment</p>
+                            <h3>Assign job</h3>
+                            <div class="field-row">
+                                <label class="field">
+                                    <span>Job name</span>
+                                    <input name="jobName" placeholder="police" minlength="2" maxlength="32" required>
+                                </label>
+                                <label class="field">
+                                    <span>Grade</span>
+                                    <input name="grade" type="number" min="0" max="1000" value="0" required>
+                                </label>
+                            </div>
+                            <button class="button button-primary" type="submit">Assign job</button>
+                        </form>
+
+                        <form id="inventory-form" class="action-card" data-permission="varde.admin.inventory">
+                            <p class="section-label">Inventory</p>
+                            <h3>Give item</h3>
+                            <div class="field-row">
+                                <label class="field">
+                                    <span>Item name</span>
+                                    <input name="itemName" placeholder="water" minlength="2" maxlength="48" required>
+                                </label>
+                                <label class="field">
+                                    <span>Amount</span>
+                                    <input name="amount" type="number" min="1" max="1000000" value="1" required>
+                                </label>
+                            </div>
+                            <button class="button button-primary" type="submit">Give item</button>
+                        </form>
+                    </div>
+                </div>
+
+                <section id="audit-panel" class="audit-panel is-hidden">
+                    <header>
+                        <div>
+                            <p class="eyebrow">Persistent record</p>
+                            <h2>Admin audit</h2>
+                        </div>
+                        <button id="audit-close" class="button button-ghost" type="button">Back</button>
+                    </header>
+                    <div id="audit-list" class="audit-list"></div>
+                </section>
+            </section>
+        </div>
+
+        <div id="toast" class="toast is-hidden" role="status"></div>
+
+        <dialog id="kick-dialog">
+            <form id="kick-form">
+                <p class="eyebrow">Moderation action</p>
+                <h2>Remove player?</h2>
+                <label class="field">
+                    <span>Reason</span>
+                    <input name="reason" maxlength="128" value="Removed by an administrator." required>
+                </label>
+                <div class="dialog-actions">
+                    <button id="kick-cancel" class="button button-ghost" type="button">Cancel</button>
+                    <button class="button button-danger" type="submit">Kick player</button>
+                </div>
+            </form>
+        </dialog>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
