@@ -53,6 +53,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for design and review rules,
 [Database lifecycle](docs/database-lifecycle.md) for backup and migration
 procedures.
 
+The first public artifact should be validated with the
+[Enhanced early-access test plan](docs/early-access-test-plan.md) before an
+alpha release is tagged.
+
 See [the core documentation](<resources/[varde]/varde_core/README.md>) for
 installation, exports, events, and the security model.
 
