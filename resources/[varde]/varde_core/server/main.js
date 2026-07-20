@@ -112,6 +112,10 @@ rpc.register('characters:list', (source) => {
   ensurePrepared(source);
   return core.listCharacters(source);
 });
+rpc.register('characters:bootstrap', (source) => {
+  ensurePrepared(source);
+  return core.characterBootstrap(source);
+});
 rpc.register(
   'characters:create',
   (source, payload) => {
@@ -119,6 +123,18 @@ rpc.register(
     return core.createCharacter(source, payload);
   },
   { limit: 3, windowMs: 60_000 },
+);
+rpc.register(
+  'characters:delete',
+  (source, payload) => {
+    ensurePrepared(source);
+    return core.deleteCharacter(
+      source,
+      payload.characterId,
+      payload.confirmation,
+    );
+  },
+  { limit: 2, windowMs: 60_000 },
 );
 rpc.register('characters:select', (source, payload) => {
   ensurePrepared(source);
@@ -194,6 +210,12 @@ on('playerDropped', () => {
 });
 
 exports('GetPlayerData', (identifier) => core.getPlayerData(identifier));
+exports('DeleteCharacter', (source, characterId, confirmation) =>
+  exportResult(() => {
+    ensurePrepared(source);
+    return core.deleteCharacter(source, characterId, confirmation);
+  }),
+);
 exports('AddMoney', (identifier, currency, amount, reason, reference) =>
   exportResult(() =>
     core.changeMoney(

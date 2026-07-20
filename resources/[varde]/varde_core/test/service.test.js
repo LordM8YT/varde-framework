@@ -110,3 +110,29 @@ test('the same Rockstar account cannot connect twice', (t) => {
     { code: 'ALREADY_CONNECTED' },
   );
 });
+
+test('character deletion requires ownership and exact confirmation', (t) => {
+  const { service } = createHarness(t);
+  service.attachConnection(7, 'license2:delete', ['license2:delete'], 'Delete');
+  const created = service.createCharacter(7, {
+    slot: 1,
+    firstName: 'Delete',
+    lastName: 'Candidate',
+    birthDate: '1990-01-01',
+    gender: 'unspecified',
+    nationality: 'Norwegian',
+  });
+
+  const bootstrap = service.characterBootstrap(7);
+  assert.equal(bootstrap.maxCharacters, 4);
+  assert.equal(bootstrap.characters.length, 1);
+  assert.throws(
+    () => service.deleteCharacter(7, created.characterId, 'wrong'),
+    { code: 'DELETE_CONFIRMATION_REQUIRED' },
+  );
+  assert.equal(
+    service.deleteCharacter(7, created.characterId, created.characterId),
+    true,
+  );
+  assert.equal(service.listCharacters(7).length, 0);
+});

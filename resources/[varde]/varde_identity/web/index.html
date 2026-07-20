@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Varde Identity</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main id="app" class="app is-hidden" aria-live="polite">
+        <div class="ambient-grid" aria-hidden="true"></div>
+
+        <aside class="brand-panel">
+            <div class="brand-lockup">
+                <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+                    <path d="M15 49h34L42 38H22l-7 11Z"></path>
+                    <path d="M21 34h22l-6-9H27l-6 9Z"></path>
+                    <path d="M28 21h8l-4-7-4 7Z"></path>
+                </svg>
+                <div>
+                    <p class="eyebrow">Framework identity</p>
+                    <h1 id="brand-title">Varde</h1>
+                </div>
+            </div>
+
+            <div class="brand-copy">
+                <p class="chapter">01 / Identity</p>
+                <h2 id="brand-subtitle">Choose your path</h2>
+                <p>Every story begins with a name, a place, and a decision.</p>
+            </div>
+
+            <div class="status">
+                <span class="status-dot"></span>
+                <span>Secure character session</span>
+            </div>
+        </aside>
+
+        <section class="workspace">
+            <header class="workspace-header">
+                <div>
+                    <p class="eyebrow">Character registry</p>
+                    <h2>Select identity</h2>
+                </div>
+                <p id="slot-counter" class="slot-counter">0 / 0 slots</p>
+            </header>
+
+            <div class="content-grid">
+                <section aria-labelledby="characters-heading">
+                    <h3 id="characters-heading" class="section-label">Your characters</h3>
+                    <div id="character-list" class="character-list"></div>
+                </section>
+
+                <section id="detail-panel" class="detail-panel" aria-label="Character details">
+                    <div id="empty-detail" class="empty-detail">
+                        <p class="eyebrow">No selection</p>
+                        <h3>Choose a character</h3>
+                        <p>Select an occupied slot, or create a new identity in an empty one.</p>
+                    </div>
+
+                    <div id="character-detail" class="is-hidden">
+                        <div class="portrait" aria-hidden="true">
+                            <span id="portrait-initials">VN</span>
+                        </div>
+                        <p class="eyebrow">Selected identity</p>
+                        <h3 id="detail-name"></h3>
+                        <p id="detail-id" class="mono"></p>
+
+                        <dl class="facts">
+                            <div>
+                                <dt>Occupation</dt>
+                                <dd id="detail-job"></dd>
+                            </div>
+                            <div>
+                                <dt>Nationality</dt>
+                                <dd id="detail-nationality"></dd>
+                            </div>
+                            <div>
+                                <dt>Born</dt>
+                                <dd id="detail-birthdate"></dd>
+                            </div>
+                        </dl>
+
+                        <label class="field">
+                            <span>Arrival point</span>
+                            <select id="spawn-select"></select>
+                            <small id="spawn-description"></small>
+                        </label>
+
+                        <div class="detail-actions">
+                            <button id="delete-button" class="button button-danger" type="button">
+                                Delete
+                            </button>
+                            <button id="play-button" class="button button-primary" type="button">
+                                Enter city
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="create-form" class="create-form is-hidden">
+                        <div>
+                            <p class="eyebrow">New identity</p>
+                            <h3>Create character</h3>
+                        </div>
+
+                        <input id="create-slot" name="slot" type="hidden">
+                        <div class="field-row">
+                            <label class="field">
+                                <span>First name</span>
+                                <input name="firstName" minlength="2" maxlength="32" required autocomplete="off">
+                            </label>
+                            <label class="field">
+                                <span>Last name</span>
+                                <input name="lastName" minlength="2" maxlength="32" required autocomplete="off">
+                            </label>
+                        </div>
+                        <div class="field-row">
+                            <label class="field">
+                                <span>Date of birth</span>
+                                <input name="birthDate" type="date" min="1900-01-01" required>
+                            </label>
+                            <label class="field">
+                                <span>Gender</span>
+                                <select name="gender">
+                                    <option value="unspecified">Unspecified</option>
+                                    <option value="female">Female</option>
+                                    <option value="male">Male</option>
+                                    <option value="nonbinary">Non-binary</option>
+                                </select>
+                            </label>
+                        </div>
+                        <label class="field">
+                            <span>Nationality</span>
+                            <input name="nationality" value="Norwegian" minlength="2" maxlength="32" required>
+                        </label>
+
+                        <div class="detail-actions">
+                            <button id="cancel-create" class="button button-ghost" type="button">Cancel</button>
+                            <button class="button button-primary" type="submit">Create identity</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </section>
+
+        <div id="toast" class="toast is-hidden" role="status"></div>
+
+        <dialog id="delete-dialog">
+            <form method="dialog">
+                <p class="eyebrow">Permanent action</p>
+                <h2>Delete this character?</h2>
+                <p id="delete-copy"></p>
+                <div class="dialog-actions">
+                    <button class="button button-ghost" value="cancel">Keep character</button>
+                    <button id="confirm-delete" class="button button-danger" value="confirm">
+                        Delete permanently
+                    </button>
+                </div>
+            </form>
+        </dialog>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

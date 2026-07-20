@@ -126,7 +126,11 @@ end)
 
 RegisterNetEvent('varde:client:playerLoaded', function(snapshot)
     playerData = snapshot
-    spawnAt(snapshot and snapshot.position)
+    if GetResourceState('varde_identity') == 'started' then
+        TriggerEvent('varde_identity:client:spawnRequested', copy(snapshot))
+    else
+        spawnAt(snapshot and snapshot.position)
+    end
 end)
 
 RegisterNetEvent('varde:client:playerUpdated', function(snapshot)
@@ -142,8 +146,17 @@ exports('CallAsync', callAsync)
 exports('ListCharacters', function()
     return call('characters:list', {})
 end)
+exports('GetCharacterBootstrap', function()
+    return call('characters:bootstrap', {})
+end)
 exports('CreateCharacter', function(character)
     return call('characters:create', character)
+end)
+exports('DeleteCharacter', function(characterId)
+    return call('characters:delete', {
+        characterId = characterId,
+        confirmation = characterId
+    })
 end)
 exports('SelectCharacter', function(characterId)
     return call('characters:select', { characterId = characterId })
@@ -156,6 +169,9 @@ exports('GetPlayerData', function()
 end)
 exports('IsLoggedIn', function()
     return playerData ~= nil
+end)
+exports('SpawnAt', function(position)
+    spawnAt(position)
 end)
 
 CreateThread(function()

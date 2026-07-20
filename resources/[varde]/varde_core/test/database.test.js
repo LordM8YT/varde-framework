@@ -109,3 +109,27 @@ test('a character slot can only be used once per account', (t) => {
     { code: 'SLOT_TAKEN' },
   );
 });
+
+test('owned character deletion cascades wallets and ledger entries', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'varde-core-'));
+  const database = new FrameworkDatabase(path.join(directory, 'test.sqlite'));
+  t.after(() => {
+    database.close();
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+
+  const account = database.upsertAccount('license:delete', ['license:delete'], 'Player');
+  const character = database.createCharacter(account.id, profile(1), defaults());
+  assert.equal(database.getLedger(character.characterId).length, 2);
+
+  assert.equal(
+    database.deleteOwnedCharacter(account.id, character.characterId),
+    true,
+  );
+  assert.equal(database.loadOwnedCharacter(account.id, character.characterId), null);
+  assert.deepEqual(database.getLedger(character.characterId), []);
+  assert.equal(
+    database.deleteOwnedCharacter(account.id, character.characterId),
+    false,
+  );
+});
