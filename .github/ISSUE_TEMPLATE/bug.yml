@@ -1,0 +1,80 @@
+name: Bug report
+description: Report a reproducible problem in Varde Framework.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping test Varde. Remove passwords, license keys, tokens,
+        player identifiers, and other private data from logs before attaching them.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I reproduced this on the latest `main` branch.
+          required: true
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: This is not a private security vulnerability.
+          required: true
+
+  - type: dropdown
+    id: resource
+    attributes:
+      label: Resource
+      options:
+        - varde_core
+        - varde_identity
+        - varde_jobs
+        - varde_inventory
+        - varde_admin
+        - varde_phone
+        - Repository tools / documentation
+        - Multiple resources
+    validations:
+      required: true
+
+  - type: input
+    id: artifact
+    attributes:
+      label: Cfx Server artifact
+      description: Include the exact artifact/build identifier.
+      placeholder: "Enhanced artifact/build"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start resources in this order…
+        2. Connect and select a character…
+        3. Run…
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs
+      description: Do not include secrets, license keys, or private identifiers.
+      render: text

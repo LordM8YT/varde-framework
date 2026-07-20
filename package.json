@@ -1,0 +1,15 @@
+{
+  "name": "varde-framework",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Development commands for Varde Framework",
+  "license": "MIT",
+  "scripts": {
+    "test": "node tools/test-all.js",
+    "data:backup": "node tools/varde-data.js backup",
+    "data:inspect": "node tools/varde-data.js inspect"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

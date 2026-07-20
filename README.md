@@ -38,6 +38,20 @@ This repository contains an MVP intended for the FiveM for GTAV Enhanced early
 access release. Unit tests run locally, but the resource still needs an
 integration pass against the first public Cfx Server artifact.
 
+## Development
+
+Run all Node tests, web-script checks, and Lua syntax checks from the repository
+root:
+
+```powershell
+npm test
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for design and review rules,
+[SECURITY.md](SECURITY.md) for private reporting, and
+[Database lifecycle](docs/database-lifecycle.md) for backup and migration
+procedures.
+
 See [the core documentation](<resources/[varde]/varde_core/README.md>) for
 installation, exports, events, and the security model.
 

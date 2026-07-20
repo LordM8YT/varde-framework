@@ -1,0 +1,42 @@
+name: Feature proposal
+description: Propose a focused addition to Varde Framework.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and proposals.
+          required: true
+        - label: The proposal can be implemented independently, without copying another framework.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: Describe the server-owner or player need.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Explain the smallest useful version and its security boundary.
+    validations:
+      required: true
+
+  - type: textarea
+    id: api
+    attributes:
+      label: Public API impact
+      description: List proposed exports, events, configuration, or database ownership.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
