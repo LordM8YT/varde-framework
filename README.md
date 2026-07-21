@@ -39,6 +39,19 @@ This repository contains an MVP intended for the FiveM for GTAV Enhanced early
 access release. Unit tests run locally, but the resource still needs an
 integration pass against the first public Cfx Server artifact.
 
+## Install with txAdmin
+
+Choose **Remote URL Template** during txAdmin setup and paste:
+
+```text
+https://raw.githubusercontent.com/LordM8YT/varde-framework/main/recipe.yaml
+```
+
+The recipe creates a complete server-data directory with the standard CFX
+resources, Varde, a generated `server.cfg`, and no external framework or
+database dependency. See the [txAdmin installation guide](docs/txadmin-install.md)
+for the full setup flow and the Enhanced early-access note.
+
 ## Development
 
 Run all Node tests, web-script checks, and Lua syntax checks from the repository
