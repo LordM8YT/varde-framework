@@ -1,0 +1,39 @@
+$engine: 3
+$onesync: on
+name: Varde Framework
+version: 0.1.0
+author: LordM8YT and contributors
+description: An independent Enhanced-first roleplay framework built from scratch.
+
+tasks:
+  # Download Varde and install only the runtime files required by FXServer.
+  - action: download_github
+    src: https://github.com/LordM8YT/varde-framework
+    ref: main
+    dest: ./tmp/varde
+
+  - action: move_path
+    src: ./tmp/varde/txadmin/server.cfg
+    dest: ./server.cfg
+
+  - action: move_path
+    src: ./tmp/varde/resources/[varde]
+    dest: ./resources/[varde]
+
+  - action: move_path
+    src: ./tmp/varde/LICENSE
+    dest: ./resources/[varde]/LICENSE
+
+  # Install the standard CFX resources at a known-good revision.
+  - action: download_github
+    src: https://github.com/citizenfx/cfx-server-data
+    ref: e265cb251c88260533c847d4a1a2838c7d828a66
+    subpath: resources
+    dest: ./resources/[cfx-default]
+
+  # FXServer provides the maintained system chat resource.
+  - action: remove_path
+    path: ./resources/[cfx-default]/[gameplay]/chat
+
+  - action: remove_path
+    path: ./tmp
