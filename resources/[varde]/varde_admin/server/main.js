@@ -65,10 +65,10 @@ function requireResource(name) {
 const integrations = {
   core: {
     getPlayerData(identifier) {
-      return exports.varde_core.GetPlayerData(identifier);
+      return globalThis.exports.varde_core.GetPlayerData(identifier);
     },
     setMoney(identifier, currency, amount, reason, reference) {
-      return exports.varde_core.SetMoney(
+      return globalThis.exports.varde_core.SetMoney(
         identifier,
         currency,
         amount,
@@ -80,13 +80,17 @@ const integrations = {
   jobs: {
     assignJob(identifier, jobName, grade) {
       requireResource('varde_jobs');
-      return exports.varde_jobs.AssignJob(identifier, jobName, grade);
+      return globalThis.exports.varde_jobs.AssignJob(
+        identifier,
+        jobName,
+        grade,
+      );
     },
   },
   inventory: {
     addItem(identifier, itemName, amount, metadata) {
       requireResource('varde_inventory');
-      return exports.varde_inventory.AddItem(
+      return globalThis.exports.varde_inventory.AddItem(
         identifier,
         itemName,
         amount,
@@ -178,7 +182,7 @@ on('playerDropped', () => {
   requestHistory.delete(source);
 });
 
-exports('HasPermission', (source, permission) =>
+globalThis.exports('HasPermission', (source, permission) =>
   admin.hasPermission(Number(source), String(permission || 'varde.admin')),
 );
 

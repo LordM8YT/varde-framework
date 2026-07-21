@@ -40,16 +40,20 @@ function requireResource(name) {
 const integrations = {
   core: {
     getPlayerData(identifier) {
-      return exports.varde_core.GetPlayerData(identifier);
+      return globalThis.exports.varde_core.GetPlayerData(identifier);
     },
     getPlayerSource(characterId) {
-      return exports.varde_core.GetPlayerSource(characterId);
+      return globalThis.exports.varde_core.GetPlayerSource(characterId);
     },
   },
   inventory: {
     hasItem(identifier, itemName, amount) {
       requireResource('varde_inventory');
-      return exports.varde_inventory.HasItem(identifier, itemName, amount);
+      return globalThis.exports.varde_inventory.HasItem(
+        identifier,
+        itemName,
+        amount,
+      );
     },
   },
 };
@@ -184,14 +188,14 @@ on('playerDropped', () => {
   }
 });
 
-exports('GetPhoneNumber', (identifier) => {
+globalThis.exports('GetPhoneNumber', (identifier) => {
   try {
     return phone.account(identifier).phoneNumber;
   } catch {
     return null;
   }
 });
-exports('SendMessage', (fromIdentifier, toNumber, body) =>
+globalThis.exports('SendMessage', (fromIdentifier, toNumber, body) =>
   result(() => phone.sendTrusted(fromIdentifier, toNumber, body)),
 );
 

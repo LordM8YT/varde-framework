@@ -68,8 +68,6 @@ test('Varde resources start after core in dependency order', () => {
   const indexes = expected.map((line) => indexOfLine(serverConfig, line));
   assert.ok(indexes.every((index) => index >= 0), 'a Varde resource is missing');
   assert.deepEqual(indexes, [...indexes].sort((a, b) => a - b));
-  assert.ok(
-    indexOfLine(serverConfig, 'stop basic-gamemode') < indexes[0],
-    'basic-gamemode must stop before Varde starts',
-  );
+  assert.equal(indexOfLine(serverConfig, 'ensure basic-gamemode'), -1);
+  assert.equal(indexOfLine(serverConfig, 'stop basic-gamemode'), -1);
 });
