@@ -32,7 +32,9 @@ the standard `group.admin` ACE group.
 The generated config currently enables `sv_devmode` for Enhanced early-access
 testing. This mode can limit the server to eight players. Recheck that setting
 against the public Cfx Enhanced artifact documentation before using Varde in
-production.
+production. The recipe intentionally does not set `sv_enforceGameBuild`: the
+current CFX Default recipe still targets a Legacy game build, and an
+Enhanced-specific value has not been published yet.
 
 The recipe tracks Varde's `main` branch while the framework is pre-alpha. Once
 versioned releases exist, the recipe should be changed to install a pinned

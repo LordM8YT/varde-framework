@@ -46,6 +46,7 @@ test('generated server config exposes every txAdmin placeholder', () => {
   assert.match(serverConfig, /^set onesync on$/mu);
   assert.match(serverConfig, /^set sv_stateBagStrictMode true$/mu);
   assert.match(serverConfig, /^set sv_devmode true$/mu);
+  assert.doesNotMatch(serverConfig, /^sv_enforceGameBuild\s+/mu);
   assert.match(serverConfig, /^add_ace group\.admin varde\.admin allow$/mu);
   assert.match(
     serverConfig,
