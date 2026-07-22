@@ -15,7 +15,9 @@ const runtime = {
     return IsPlayerAceAllowed(String(source), permission);
   },
   getPlayers() {
-    return GetPlayers().map(Number);
+    return globalThis.exports.varde_core
+      .GetPlayers()
+      .map((player) => Number(player.source));
   },
   getPlayerName(source) {
     return GetPlayerName(String(source)) || `Source ${source}`;

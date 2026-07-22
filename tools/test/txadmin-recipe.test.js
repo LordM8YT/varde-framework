@@ -43,9 +43,10 @@ test('generated server config exposes every txAdmin placeholder', () => {
     assert.ok(serverConfig.includes(placeholder), `${placeholder} is missing`);
   }
 
-  assert.match(serverConfig, /^set onesync on$/mu);
+  assert.doesNotMatch(serverConfig, /^set onesync on$/mu);
   assert.match(serverConfig, /^set sv_stateBagStrictMode true$/mu);
-  assert.match(serverConfig, /^set sv_devmode true$/mu);
+  assert.match(serverConfig, /^set sv_devMode true$/mu);
+  assert.doesNotMatch(serverConfig, /^set sv_devmode true$/mu);
   assert.doesNotMatch(serverConfig, /^sv_enforceGameBuild\s+/mu);
   assert.match(serverConfig, /^add_ace group\.admin varde\.admin allow$/mu);
   assert.match(

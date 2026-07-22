@@ -3,6 +3,10 @@ local activeJob = nil
 local rawConfig = LoadResourceFile(GetCurrentResourceName(), 'config/jobs.json')
 local jobConfig = rawConfig and json.decode(rawConfig) or { jobs = {} }
 
+local function nativeTrue(value)
+    return value == true or value == 1
+end
+
 local function copy(value)
     if value == nil then
         return nil
@@ -92,7 +96,7 @@ exports('HasPermission', function(permission, requireDuty)
 end)
 
 CreateThread(function()
-    while not NetworkIsPlayerActive(PlayerId()) do
+    while not nativeTrue(NetworkIsPlayerActive(PlayerId())) do
         Wait(250)
     end
     if GetResourceState('varde_core') == 'started'
@@ -169,7 +173,7 @@ CreateThread(function()
                         )
                     )
                     EndTextCommandDisplayHelp(0, false, true, -1)
-                    if IsControlJustReleased(0, 38)
+                    if nativeTrue(IsControlJustReleased(0, 38))
                         and GetGameTimer() >= cooldownUntil then
                         cooldownUntil = GetGameTimer() + 1500
                         TriggerServerEvent(

@@ -12,7 +12,7 @@ https://raw.githubusercontent.com/LordM8YT/varde-framework/main/recipe.yaml
 
 ## Fresh server
 
-1. Start `FXServer.exe` without a `+exec server.cfg` argument and finish the
+1. Start `cfx-server.exe` without a `+exec server.cfg` argument and finish the
    initial txAdmin account setup.
 2. Select **Remote URL Template** as the deployment type.
 3. Paste the recipe URL above, choose an empty data directory, and open the
@@ -29,12 +29,19 @@ the standard `group.admin` ACE group.
 
 ## Early-access note
 
-The generated config currently enables `sv_devmode` for Enhanced early-access
-testing. This mode can limit the server to eight players. Recheck that setting
-against the public Cfx Enhanced artifact documentation before using Varde in
-production. The recipe intentionally does not set `sv_enforceGameBuild`: the
-current CFX Default recipe still targets a Legacy game build, and an
-Enhanced-specific value has not been published yet.
+The generated config enables `sv_devMode` for Enhanced early-access developer
+tools. Disable it for production servers that do not need client developer
+tooling. OneSync is enabled by the recipe and managed by txAdmin, so the
+generated `server.cfg` does not duplicate that setting.
+
+Varde intentionally does not set `sv_enforceGameBuild`. Enhanced supports the
+latest gamebuild by default; setting it to `1` would instead load the base game
+without DLC. Varde stores framework data in SQLite rather than the Cfx key-value
+database, so no KVP migration is required. Its public player state bags are
+replicated explicitly.
+
+See Cfx's [Legacy vs Enhanced migration guide](https://docs.fivem.net/docs/developers/legacy-vs-enhanced/)
+for the current breaking changes and compatibility variables.
 
 The recipe tracks Varde's `main` branch while the framework is pre-alpha. Once
 versioned releases exist, the recipe should be changed to install a pinned

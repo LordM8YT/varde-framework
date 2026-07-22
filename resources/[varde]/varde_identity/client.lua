@@ -4,6 +4,10 @@ local isOpen = false
 local isLoading = false
 local selectedSpawn = 'last'
 
+local function nativeTrue(value)
+    return value == true or value == 1
+end
+
 local function send(action, data)
     SendNUIMessage({
         action = action,
@@ -32,10 +36,17 @@ local function findSpawn(spawnId)
     return VardeIdentityConfig.spawns[1]
 end
 
+local function releaseNuiFocus()
+    SetNuiFocus(false, false)
+    if SetNuiFocusKeepInput then
+        SetNuiFocusKeepInput(false)
+    end
+end
+
 local function closeMenu()
     isOpen = false
     isLoading = false
-    SetNuiFocus(false, false)
+    releaseNuiFocus()
     send('identity:close')
 end
 
@@ -154,6 +165,11 @@ RegisterNUICallback('close', function(_, cb)
 end)
 
 AddEventHandler('varde_identity:client:spawnRequested', function(snapshot)
+    -- The server can request the spawn before the asynchronous NUI callback
+    -- has returned. Close the fullscreen frame here as well so it can never
+    -- remain above the game after a successful character selection.
+    closeMenu()
+
     local spawn = findSpawn(selectedSpawn)
     local position = snapshot and snapshot.position
     if spawn and not spawn.useLastPosition and spawn.position then
@@ -173,7 +189,7 @@ RegisterCommand('identity', function()
 end, false)
 
 CreateThread(function()
-    while not NetworkIsPlayerActive(PlayerId()) do
+    while not nativeTrue(NetworkIsPlayerActive(PlayerId())) do
         Wait(250)
     end
 
@@ -182,7 +198,7 @@ CreateThread(function()
 end)
 
 AddEventHandler('onResourceStop', function(stoppedResource)
-    if stoppedResource == RESOURCE_NAME and isOpen then
-        SetNuiFocus(false, false)
+    if stoppedResource == RESOURCE_NAME then
+        releaseNuiFocus()
     end
 end)

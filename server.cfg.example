@@ -9,14 +9,13 @@ sets sv_projectName "Varde Framework"
 sets sv_projectDesc "Varde — an independent Enhanced-first framework"
 sv_maxclients 8
 
-# Required by varde_core.
-set onesync on
+# OneSync is always enabled by Cfx Server for Enhanced and its convar is
+# read-only. txAdmin recipes should use `$onesync: on` instead.
 set sv_stateBagStrictMode true
 
-# Enables Enhanced developer tools for everyone and limits the server to 8
-# slots. Replace this with per-player deferrals.handover access before
-# production.
-set sv_devmode true
+# Enables Enhanced client developer tools. Disable this in production, or
+# replace it with per-player deferrals.handover access.
+set sv_devMode true
 
 # Core settings can override config/defaults.json without editing the resource.
 set varde_maxCharacters 4

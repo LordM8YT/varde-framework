@@ -11,7 +11,8 @@ license 'MIT'
 node_version '26'
 
 dependencies {
-    '/onesync'
+    '/onesync',
+    'spawnmanager'
 }
 
 files {

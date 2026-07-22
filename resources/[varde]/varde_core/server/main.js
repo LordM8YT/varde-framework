@@ -170,6 +170,34 @@ onNet('varde:server:updatePosition', (position) => {
   }
 });
 
+onNet('varde:server:spawnDiagnostics', (diagnostics) => {
+  const playerSource = Number(global.source);
+  if (!rpc.rateLimiter.allow(`${playerSource}:spawn-diagnostics`, 4, 60_000)) {
+    return;
+  }
+
+  const input = diagnostics && typeof diagnostics === 'object' ? diagnostics : {};
+  const position =
+    input.position && typeof input.position === 'object' ? input.position : {};
+  const report = {
+    source: playerSource,
+    model: Number(input.model) || 0,
+    pedExists: input.pedExists === true,
+    pedVisible: input.pedVisible === true,
+    screenFadedIn: input.screenFadedIn === true,
+    screenFadedOut: input.screenFadedOut === true,
+    gameplayCamRendering: input.gameplayCamRendering === true,
+    playerSwitchInProgress: input.playerSwitchInProgress === true,
+    networkPlayerActive: input.networkPlayerActive === true,
+    position: {
+      x: Number(position.x) || 0,
+      y: Number(position.y) || 0,
+      z: Number(position.z) || 0,
+    },
+  };
+  runtime.log('info', `spawn diagnostics ${JSON.stringify(report)}`);
+});
+
 on('playerConnecting', (name, _setKickReason, deferrals) => {
   const playerSource = Number(global.source);
   const identifiers = getIdentifiers(playerSource);

@@ -1,5 +1,9 @@
 local inventory = nil
 
+local function nativeTrue(value)
+    return value == true or value == 1
+end
+
 local function copy(value)
     if value == nil then
         return nil
@@ -94,7 +98,7 @@ exports('HasItem', function(itemName, amount)
 end)
 
 CreateThread(function()
-    while not NetworkIsPlayerActive(PlayerId()) do
+    while not nativeTrue(NetworkIsPlayerActive(PlayerId())) do
         Wait(250)
     end
     if GetResourceState('varde_core') == 'started'
