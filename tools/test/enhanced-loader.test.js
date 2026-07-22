@@ -133,3 +133,28 @@ test('identity closes its NUI before handling the spawn request', () => {
     /AddEventHandler\('varde_identity:client:spawnRequested',[\s\S]*?closeMenu\(\)[\s\S]*?exports\.varde_core:SpawnAt/u,
   );
 });
+
+test('cross-resource client lifecycle handlers are network-safe', () => {
+  const consumers = {
+    varde_identity: ['varde:client:playerLoggedOut'],
+    varde_movement: [
+      'varde:client:playerLoaded',
+      'varde:client:playerLoggedOut',
+    ],
+  };
+
+  for (const [resourceName, eventNames] of Object.entries(consumers)) {
+    const client = fs.readFileSync(
+      path.join(resourceRoot, resourceName, 'client.lua'),
+      'utf8',
+    );
+
+    for (const eventName of eventNames) {
+      assert.match(
+        client,
+        new RegExp(`RegisterNetEvent\\('${eventName.replace(':', '\\:')}'`),
+        `${resourceName}: ${eventName}`,
+      );
+    }
+  }
+});

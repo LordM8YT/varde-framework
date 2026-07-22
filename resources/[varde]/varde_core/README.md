@@ -188,17 +188,19 @@ should supply a stable `reason` and `reference` so transactions are auditable.
 Other client resources can listen for:
 
 ```lua
-AddEventHandler('varde:client:playerLoaded', function(playerData)
+RegisterNetEvent('varde:client:playerLoaded', function(playerData)
 end)
 
-AddEventHandler('varde:client:playerUpdated', function(playerData)
+RegisterNetEvent('varde:client:playerUpdated', function(playerData)
 end)
 
-AddEventHandler('varde:client:playerLoggedOut', function()
+RegisterNetEvent('varde:client:playerLoggedOut', function()
 end)
 ```
 
-`playerUpdated` currently fires after money, metadata, or job changes.
+These events originate on the server, so every consuming client resource must
+register them with `RegisterNetEvent`. `playerUpdated` currently fires after
+money, metadata, or job changes.
 
 Server resources can listen for `varde:server:playerLoaded`,
 `varde:server:playerLoggedOut`, `varde:server:playerDropped`,

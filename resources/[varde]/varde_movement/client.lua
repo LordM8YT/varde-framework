@@ -365,11 +365,11 @@ local function refreshCharacterLoaded()
         and nativeTrue(playerState['varde:loaded'])
 end
 
-AddEventHandler('varde:client:playerLoaded', function()
+RegisterNetEvent('varde:client:playerLoaded', function()
     characterLoaded = true
 end)
 
-AddEventHandler('varde:client:playerLoggedOut', function()
+RegisterNetEvent('varde:client:playerLoggedOut', function()
     characterLoaded = not Config.requireVardeCharacter
     if currentPed ~= 0 then
         clearTransientMovement(currentPed)

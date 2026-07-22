@@ -27,8 +27,14 @@ test('movement uses one state-aware dynamic client thread', () => {
   assert.match(client, /local sleep = 500/u);
   assert.match(client, /isUsableOnFootPed\(ped\)[\s\S]*?sleep = 0/u);
   assert.match(client, /playerState\['varde:loaded'\]/u);
-  assert.match(client, /varde:client:playerLoaded/u);
-  assert.match(client, /varde:client:playerLoggedOut/u);
+  assert.match(
+    client,
+    /RegisterNetEvent\('varde:client:playerLoaded'/u,
+  );
+  assert.match(
+    client,
+    /RegisterNetEvent\('varde:client:playerLoggedOut'/u,
+  );
 });
 
 test('movement implements Enhanced-safe strafe, FOV, slide, and vault', () => {
@@ -58,6 +64,6 @@ test('movement restores ped and camera state on shutdown', () => {
   assert.match(client, /restorePed\(currentPed\)/u);
   assert.match(
     client,
-    /varde:client:playerLoggedOut[\s\S]*?restorePed\(currentPed\)/u,
+    /RegisterNetEvent\('varde:client:playerLoggedOut'[\s\S]*?restorePed\(currentPed\)/u,
   );
 });

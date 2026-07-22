@@ -180,7 +180,7 @@ AddEventHandler('varde_identity:client:spawnRequested', function(snapshot)
     selectedSpawn = 'last'
 end)
 
-AddEventHandler('varde:client:playerLoggedOut', function()
+RegisterNetEvent('varde:client:playerLoggedOut', function()
     SetTimeout(250, openMenu)
 end)
 
