@@ -7,9 +7,7 @@ local INPUT_MOVE_UD = 31
 local INPUT_DUCK = 36
 
 local abs = math.abs
-local exp = math.exp
 local max = math.max
-local min = math.min
 local sqrt = math.sqrt
 
 local function convarEnabled(name, defaultValue)
@@ -33,13 +31,6 @@ local Config = {
     walkBlendRatio = 1.0,
     turnBlendOutAngle = 42.0,
     turnBlendOutCooldownMs = 80,
-
-    -- The gameplay camera exposes a FOV getter but no supported direct setter.
-    -- A mirrored scripted camera is therefore active only during the transition.
-    speedFovIncrease = 7.0,
-    speedFovSmoothing = 10.0,
-    minimumFov = 35.0,
-    maximumFov = 95.0,
 
     slideDurationMs = 650,
     slideCooldownMs = 1500,
@@ -76,16 +67,9 @@ local movementClipsetRequested = false
 local movementClipsetReady = false
 local originalPedState = {}
 
-local speedCamera = 0
-local speedCameraFov = 0.0
-
 local function nativeTrue(value)
     -- Enhanced early access can expose native BOOL values as true/false or 1/0.
     return value == true or value == 1
-end
-
-local function clamp(value, lower, upper)
-    return max(lower, min(upper, value))
 end
 
 local function angleDifference(first, second)
@@ -197,90 +181,6 @@ local function restorePed(ped)
     originalPedState[ped] = nil
 end
 
-local function destroySpeedCamera()
-    if speedCamera == 0 then
-        return
-    end
-
-    if GetRenderingCam() == speedCamera then
-        RenderScriptCams(false, false, 0, true, true)
-    end
-
-    SetCamActive(speedCamera, false)
-    DestroyCam(speedCamera, false)
-    speedCamera = 0
-    speedCameraFov = 0.0
-end
-
-local function createSpeedCamera()
-    -- Never steal rendering from another scripted-camera resource.
-    if not nativeTrue(IsGameplayCamRendering()) then
-        return false
-    end
-
-    local coords = GetGameplayCamCoord()
-    local rotation = GetGameplayCamRot(2)
-    local baseFov = GetGameplayCamFov()
-
-    speedCamera = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
-    if speedCamera == 0 then
-        return false
-    end
-
-    speedCameraFov = baseFov
-    SetCamCoord(speedCamera, coords.x, coords.y, coords.z)
-    SetCamRot(speedCamera, rotation.x, rotation.y, rotation.z, 2)
-    SetCamFov(speedCamera, baseFov)
-    SetCamActive(speedCamera, true)
-    RenderScriptCams(true, false, 0, true, true)
-    return true
-end
-
-local function updateSpeedCamera(wantsSpeedFov)
-    if wantsSpeedFov and speedCamera == 0 and not createSpeedCamera() then
-        return
-    end
-
-    if speedCamera == 0 then
-        return
-    end
-
-    -- If another resource takes over, release only Varde's camera handle.
-    if GetRenderingCam() ~= speedCamera then
-        SetCamActive(speedCamera, false)
-        DestroyCam(speedCamera, false)
-        speedCamera = 0
-        speedCameraFov = 0.0
-        return
-    end
-
-    local coords = GetGameplayCamCoord()
-    local rotation = GetGameplayCamRot(2)
-    local baseFov = GetGameplayCamFov()
-    local targetFov = baseFov
-    if wantsSpeedFov then
-        targetFov = baseFov + Config.speedFovIncrease
-    end
-    targetFov = clamp(targetFov, Config.minimumFov, Config.maximumFov)
-
-    local frameTime = GetFrameTime()
-    if frameTime <= 0.0 or frameTime > 0.10 then
-        frameTime = 1.0 / 60.0
-    end
-    local blend = 1.0 - exp(-Config.speedFovSmoothing * frameTime)
-    speedCameraFov = speedCameraFov
-        + ((targetFov - speedCameraFov) * blend)
-
-    -- The underlying gameplay camera remains authoritative for player input.
-    SetCamCoord(speedCamera, coords.x, coords.y, coords.z)
-    SetCamRot(speedCamera, rotation.x, rotation.y, rotation.z, 2)
-    SetCamFov(speedCamera, speedCameraFov)
-
-    if not wantsSpeedFov and abs(speedCameraFov - baseFov) < 0.04 then
-        destroySpeedCamera()
-    end
-end
-
 local function finishSlide(ped)
     if not slideActive then
         return
@@ -351,7 +251,6 @@ local function clearTransientMovement(ped)
     vaultActive = false
     vaultMomentum = 0.0
     lastMoveHeading = nil
-    destroySpeedCamera()
 end
 
 local function refreshCharacterLoaded()
@@ -518,16 +417,6 @@ CreateThread(function()
                     lastMoveHeading = nil
                 end
 
-                local firstPerson = GetFollowPedCamViewMode() == 4
-                local aiming = nativeTrue(IsPlayerFreeAiming(PlayerId()))
-                local wantsSpeedFov = (sprinting or slideActive)
-                    and moving
-                    and not firstPerson
-                    and not aiming
-                    and not vaulting
-                    and not climbing
-
-                updateSpeedCamera(wantsSpeedFov)
             else
                 clearTransientMovement(ped)
             end
@@ -549,7 +438,6 @@ AddEventHandler('onResourceStop', function(stoppedResource)
         return
     end
 
-    destroySpeedCamera()
     restorePed(currentPed)
 
     if movementClipsetRequested then

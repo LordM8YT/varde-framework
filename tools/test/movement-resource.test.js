@@ -37,7 +37,7 @@ test('movement uses one state-aware dynamic client thread', () => {
   );
 });
 
-test('movement implements Enhanced-safe strafe, FOV, slide, and vault', () => {
+test('movement implements Enhanced-safe strafe, slide, and vault', () => {
   for (const flag of [128, 241, 427]) {
     assert.match(client, new RegExp(`SetPedConfigFlag\\(ped, ${flag}, `, 'u'));
   }
@@ -45,8 +45,9 @@ test('movement implements Enhanced-safe strafe, FOV, slide, and vault', () => {
   assert.match(client, /local function nativeTrue\(value\)/u);
   assert.match(client, /SetEntityHeading\(ped, heading\)/u);
   assert.match(client, /SetPedMoveRateOverride\(ped, Config\.moveRate\)/u);
-  assert.match(client, /CreateCam\('DEFAULT_SCRIPTED_CAMERA', true\)/u);
-  assert.match(client, /SetCamFov\(speedCamera, speedCameraFov\)/u);
+  assert.doesNotMatch(client, /CreateCam\(/u);
+  assert.doesNotMatch(client, /RenderScriptCams\(/u);
+  assert.doesNotMatch(client, /SetCamFov\(/u);
   assert.doesNotMatch(client, /SetGameplayCamFov/u);
   assert.match(client, /IsControlJustPressed\(0, INPUT_DUCK\)/u);
   assert.match(client, /SetPedCanRagdoll\(ped, false\)/u);
@@ -56,10 +57,9 @@ test('movement implements Enhanced-safe strafe, FOV, slide, and vault', () => {
   assert.match(client, /vaultMomentum/u);
 });
 
-test('movement restores ped and camera state on shutdown', () => {
+test('movement restores ped state on shutdown', () => {
   assert.match(client, /originalPedState/u);
   assert.match(client, /for flag, value in pairs\(savedState\.flags\)/u);
-  assert.match(client, /RenderScriptCams\(false, false, 0, true, true\)/u);
   assert.match(client, /AddEventHandler\('onResourceStop'/u);
   assert.match(client, /restorePed\(currentPed\)/u);
   assert.match(
