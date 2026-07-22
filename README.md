@@ -29,7 +29,6 @@ resources/
     varde_inventory/  Server-authoritative items and containers
     varde_admin/      ACE-secured operations and audit panel
     varde_phone/      Contacts and offline text messaging
-    varde_movement/   Optional responsive on-foot movement
     varde_example/    Commands showing the public API
 server.cfg.example       Minimal development configuration
 ```
@@ -85,9 +84,6 @@ Administration permissions and actions are documented in
 
 The text-only communication MVP is documented in
 [varde_phone](<resources/[varde]/varde_phone/README.md>).
-
-The optional Enhanced-first movement module is documented in
-[varde_movement](<resources/[varde]/varde_movement/README.md>).
 
 ## License
 
