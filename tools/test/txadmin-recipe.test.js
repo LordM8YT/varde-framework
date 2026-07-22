@@ -63,6 +63,7 @@ test('Varde resources start after core in dependency order', () => {
     'ensure varde_admin',
     'ensure varde_phone',
     'ensure varde_identity',
+    'ensure varde_movement',
     'ensure varde_example',
   ];
 

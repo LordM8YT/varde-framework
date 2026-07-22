@@ -20,6 +20,7 @@ set sv_devMode true
 # Core settings can override config/defaults.json without editing the resource.
 set varde_maxCharacters 4
 set varde_saveIntervalMs 60000
+setr varde_movement_enabled true
 
 ensure varde_core
 ensure varde_jobs
@@ -27,6 +28,7 @@ ensure varde_inventory
 ensure varde_admin
 ensure varde_phone
 ensure varde_identity
+ensure varde_movement
 ensure varde_example
 
 # Job-management commands are denied to players unless their principal inherits
