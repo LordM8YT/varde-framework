@@ -34,6 +34,12 @@ test('Cfx wiring boots and protects the admin request channel', () => {
     GetPlayerData(identifier) {
       return players.get(Number(identifier)) || null;
     },
+    GetPlayers() {
+      return [...players.entries()].map(([source, player]) => ({
+        source,
+        ...player,
+      }));
+    },
     SetMoney() {
       return { ok: true, data: 0 };
     },
@@ -64,9 +70,6 @@ test('Cfx wiring boots and protects the admin request channel', () => {
     },
     IsPlayerAceAllowed() {
       return true;
-    },
-    GetPlayers() {
-      return ['7'];
     },
     GetPlayerName() {
       return 'Admin';

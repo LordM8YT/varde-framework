@@ -28,13 +28,16 @@ const runtime = {
 
 const core = {
   getPlayerData(identifier) {
-    return exports.varde_core.GetPlayerData(identifier);
+    return globalThis.exports.varde_core.GetPlayerData(identifier);
+  },
+  getPlayers() {
+    return globalThis.exports.varde_core.GetPlayers();
   },
   getPlayerSource(characterId) {
-    return exports.varde_core.GetPlayerSource(characterId);
+    return globalThis.exports.varde_core.GetPlayerSource(characterId);
   },
   setJob(identifier, job) {
-    return exports.varde_core.SetJob(identifier, job);
+    return globalThis.exports.varde_core.SetJob(identifier, job);
   },
 };
 
@@ -196,20 +199,20 @@ RegisterCommand(
   false,
 );
 
-exports('GetJobs', (identifier) => {
+globalThis.exports('GetJobs', (identifier) => {
   try {
     return jobs.getJobs(identifier);
   } catch {
     return [];
   }
 });
-exports('HasJob', (identifier, jobName, minimumGrade) =>
+globalThis.exports('HasJob', (identifier, jobName, minimumGrade) =>
   jobs.hasJob(identifier, jobName, minimumGrade),
 );
-exports('HasPermission', (identifier, permission, options) =>
+globalThis.exports('HasPermission', (identifier, permission, options) =>
   jobs.hasPermission(identifier, permission, options),
 );
-exports('AssignJob', (identifier, jobName, grade) =>
+globalThis.exports('AssignJob', (identifier, jobName, grade) =>
   result(() =>
     jobs.assign(
       identifier,
@@ -219,25 +222,25 @@ exports('AssignJob', (identifier, jobName, grade) =>
     ),
   ),
 );
-exports('RemoveJob', (identifier, jobName) =>
+globalThis.exports('RemoveJob', (identifier, jobName) =>
   result(() =>
     jobs.remove(identifier, jobName, GetInvokingResource() || 'resource'),
   ),
 );
-exports('SetActiveJob', (identifier, jobName) =>
+globalThis.exports('SetActiveJob', (identifier, jobName) =>
   result(() =>
     jobs.setActive(identifier, jobName, GetInvokingResource() || 'resource'),
   ),
 );
-exports('SetDuty', (identifier, onDuty) =>
+globalThis.exports('SetDuty', (identifier, onDuty) =>
   result(() =>
     jobs.setDuty(identifier, onDuty === true, GetInvokingResource() || 'resource'),
   ),
 );
 
 setTimeout(() => {
-  for (const source of GetPlayers()) {
-    const numericSource = Number(source);
+  for (const player of core.getPlayers()) {
+    const numericSource = Number(player.source);
     if (core.getPlayerData(numericSource)) {
       handle(numericSource, () => jobs.sync(numericSource));
     }

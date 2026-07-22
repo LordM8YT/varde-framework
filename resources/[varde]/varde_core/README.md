@@ -20,7 +20,7 @@ The resource has no package-manager or database-server dependency.
 Place the resources under a server's `resources/[varde]` directory and add:
 
 ```cfg
-set onesync on
+# OneSync is built into Cfx Server for Enhanced. Do not set its read-only convar.
 set sv_stateBagStrictMode true
 
 ensure varde_core
@@ -188,17 +188,19 @@ should supply a stable `reason` and `reference` so transactions are auditable.
 Other client resources can listen for:
 
 ```lua
-AddEventHandler('varde:client:playerLoaded', function(playerData)
+RegisterNetEvent('varde:client:playerLoaded', function(playerData)
 end)
 
-AddEventHandler('varde:client:playerUpdated', function(playerData)
+RegisterNetEvent('varde:client:playerUpdated', function(playerData)
 end)
 
-AddEventHandler('varde:client:playerLoggedOut', function()
+RegisterNetEvent('varde:client:playerLoggedOut', function()
 end)
 ```
 
-`playerUpdated` currently fires after money, metadata, or job changes.
+These events originate on the server, so every consuming client resource must
+register them with `RegisterNetEvent`. `playerUpdated` currently fires after
+money, metadata, or job changes.
 
 Server resources can listen for `varde:server:playerLoaded`,
 `varde:server:playerLoggedOut`, `varde:server:playerDropped`,
@@ -280,8 +282,7 @@ login lifecycle.
 
 ## Early-access integration checklist
 
-These checks require the public Cfx Server artifact and cannot be completed
-before release:
+Run these checks against the latest public Cfx Server artifact:
 
 1. Confirm `node_version '26'` is accepted by the Enhanced resource loader.
 2. Confirm Cfx Server's Node build exposes `node:sqlite`.

@@ -28,10 +28,13 @@ const runtime = {
 
 const core = {
   getPlayerData(identifier) {
-    return exports.varde_core.GetPlayerData(identifier);
+    return globalThis.exports.varde_core.GetPlayerData(identifier);
+  },
+  getPlayers() {
+    return globalThis.exports.varde_core.GetPlayers();
   },
   getPlayerSource(characterId) {
-    return exports.varde_core.GetPlayerSource(characterId);
+    return globalThis.exports.varde_core.GetPlayerSource(characterId);
   },
 };
 
@@ -127,35 +130,37 @@ onNet('varde_inventory:server:use', (slot) => {
   }
 });
 
-exports('GetInventory', (identifier) => {
+globalThis.exports('GetInventory', (identifier) => {
   try {
     return inventory.getInventory(identifier);
   } catch {
     return null;
   }
 });
-exports('GetItemCount', (identifier, itemName, metadata) =>
+globalThis.exports('GetItemCount', (identifier, itemName, metadata) =>
   inventory.getItemCount(identifier, itemName, metadata),
 );
-exports('HasItem', (identifier, itemName, amount, metadata) =>
+globalThis.exports('HasItem', (identifier, itemName, amount, metadata) =>
   inventory.getItemCount(identifier, itemName, metadata) >= Number(amount || 1),
 );
-exports('CanCarryItem', (identifier, itemName, amount, metadata) =>
+globalThis.exports('CanCarryItem', (identifier, itemName, amount, metadata) =>
   inventory.canCarryItem(identifier, itemName, amount, metadata),
 );
-exports('AddItem', (identifier, itemName, amount, metadata, targetSlot) =>
-  result(() =>
-    inventory.addItem(
-      identifier,
-      itemName,
-      amount,
-      metadata,
-      invokingResource(),
-      targetSlot,
+globalThis.exports(
+  'AddItem',
+  (identifier, itemName, amount, metadata, targetSlot) =>
+    result(() =>
+      inventory.addItem(
+        identifier,
+        itemName,
+        amount,
+        metadata,
+        invokingResource(),
+        targetSlot,
+      ),
     ),
-  ),
 );
-exports('RemoveItem', (identifier, itemName, amount, metadata) =>
+globalThis.exports('RemoveItem', (identifier, itemName, amount, metadata) =>
   result(() =>
     inventory.removeItem(
       identifier,
@@ -166,7 +171,7 @@ exports('RemoveItem', (identifier, itemName, amount, metadata) =>
     ),
   ),
 );
-exports(
+globalThis.exports(
   'MoveItem',
   (identifier, fromSlot, toSlot, amount) =>
     result(() =>
@@ -179,7 +184,7 @@ exports(
       ),
     ),
 );
-exports(
+globalThis.exports(
   'TransferItem',
   (fromIdentifier, toIdentifier, fromSlot, amount, targetSlot) =>
     result(() =>
@@ -193,16 +198,16 @@ exports(
       ),
     ),
 );
-exports('RegisterStash', (stashId, label, slots, maxWeight) =>
+globalThis.exports('RegisterStash', (stashId, label, slots, maxWeight) =>
   result(() => inventory.registerStash(stashId, label, slots, maxWeight)),
 );
-exports('RegisterUsableItem', (itemName, handler) =>
+globalThis.exports('RegisterUsableItem', (itemName, handler) =>
   result(() => inventory.registerUsableItem(itemName, handler)),
 );
 
 setTimeout(() => {
-  for (const source of GetPlayers()) {
-    const numericSource = Number(source);
+  for (const player of core.getPlayers()) {
+    const numericSource = Number(player.source);
     if (core.getPlayerData(numericSource)) {
       notifyError(numericSource, result(() => inventory.sync(numericSource)));
     }

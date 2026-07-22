@@ -43,9 +43,10 @@ test('generated server config exposes every txAdmin placeholder', () => {
     assert.ok(serverConfig.includes(placeholder), `${placeholder} is missing`);
   }
 
-  assert.match(serverConfig, /^set onesync on$/mu);
+  assert.doesNotMatch(serverConfig, /^set onesync on$/mu);
   assert.match(serverConfig, /^set sv_stateBagStrictMode true$/mu);
-  assert.match(serverConfig, /^set sv_devmode true$/mu);
+  assert.match(serverConfig, /^set sv_devMode true$/mu);
+  assert.doesNotMatch(serverConfig, /^set sv_devmode true$/mu);
   assert.doesNotMatch(serverConfig, /^sv_enforceGameBuild\s+/mu);
   assert.match(serverConfig, /^add_ace group\.admin varde\.admin allow$/mu);
   assert.match(
@@ -62,14 +63,13 @@ test('Varde resources start after core in dependency order', () => {
     'ensure varde_admin',
     'ensure varde_phone',
     'ensure varde_identity',
+    'ensure varde_movement',
     'ensure varde_example',
   ];
 
   const indexes = expected.map((line) => indexOfLine(serverConfig, line));
   assert.ok(indexes.every((index) => index >= 0), 'a Varde resource is missing');
   assert.deepEqual(indexes, [...indexes].sort((a, b) => a - b));
-  assert.ok(
-    indexOfLine(serverConfig, 'stop basic-gamemode') < indexes[0],
-    'basic-gamemode must stop before Varde starts',
-  );
+  assert.equal(indexOfLine(serverConfig, 'ensure basic-gamemode'), -1);
+  assert.equal(indexOfLine(serverConfig, 'stop basic-gamemode'), -1);
 });

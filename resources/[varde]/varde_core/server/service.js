@@ -312,6 +312,16 @@ class CoreService {
     return player ? publicSnapshot(player) : null;
   }
 
+  getPlayers() {
+    const players = [];
+    for (const [source, context] of this.contexts.entries()) {
+      if (context.player) {
+        players.push({ source, ...publicSnapshot(context.player) });
+      }
+    }
+    return players;
+  }
+
   changeMoney(identifier, currency, amount, operation, reason, reference, actor) {
     const player = this.getPlayer(identifier);
     if (!player) {

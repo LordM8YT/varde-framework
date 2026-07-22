@@ -29,6 +29,9 @@ test('Cfx wiring boots and serves job events, commands, and exports', () => {
         ? player
         : null;
     },
+    GetPlayers() {
+      return [];
+    },
     GetPlayerSource(characterId) {
       return characterId === player.characterId ? 7 : 0;
     },

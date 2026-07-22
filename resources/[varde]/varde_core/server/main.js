@@ -170,6 +170,34 @@ onNet('varde:server:updatePosition', (position) => {
   }
 });
 
+onNet('varde:server:spawnDiagnostics', (diagnostics) => {
+  const playerSource = Number(global.source);
+  if (!rpc.rateLimiter.allow(`${playerSource}:spawn-diagnostics`, 4, 60_000)) {
+    return;
+  }
+
+  const input = diagnostics && typeof diagnostics === 'object' ? diagnostics : {};
+  const position =
+    input.position && typeof input.position === 'object' ? input.position : {};
+  const report = {
+    source: playerSource,
+    model: Number(input.model) || 0,
+    pedExists: input.pedExists === true,
+    pedVisible: input.pedVisible === true,
+    screenFadedIn: input.screenFadedIn === true,
+    screenFadedOut: input.screenFadedOut === true,
+    gameplayCamRendering: input.gameplayCamRendering === true,
+    playerSwitchInProgress: input.playerSwitchInProgress === true,
+    networkPlayerActive: input.networkPlayerActive === true,
+    position: {
+      x: Number(position.x) || 0,
+      y: Number(position.y) || 0,
+      z: Number(position.z) || 0,
+    },
+  };
+  runtime.log('info', `spawn diagnostics ${JSON.stringify(report)}`);
+});
+
 on('playerConnecting', (name, _setKickReason, deferrals) => {
   const playerSource = Number(global.source);
   const identifiers = getIdentifiers(playerSource);
@@ -212,62 +240,71 @@ on('playerDropped', () => {
   }
 });
 
-exports('GetPlayerData', (identifier) => core.getPlayerData(identifier));
-exports('GetPlayerSource', (characterId) => {
+globalThis.exports('GetPlayerData', (identifier) =>
+  core.getPlayerData(identifier),
+);
+globalThis.exports('GetPlayers', () => core.getPlayers());
+globalThis.exports('GetPlayerSource', (characterId) => {
   const player = core.getPlayer(characterId);
   return player ? player.source : 0;
 });
-exports('DeleteCharacter', (source, characterId, confirmation) =>
+globalThis.exports('DeleteCharacter', (source, characterId, confirmation) =>
   exportResult(() => {
     ensurePrepared(source);
     return core.deleteCharacter(source, characterId, confirmation);
   }),
 );
-exports('AddMoney', (identifier, currency, amount, reason, reference) =>
-  exportResult(() =>
-    core.changeMoney(
-      identifier,
-      currency,
-      amount,
-      'add',
-      reason,
-      reference,
-      GetInvokingResource() || 'console',
+globalThis.exports(
+  'AddMoney',
+  (identifier, currency, amount, reason, reference) =>
+    exportResult(() =>
+      core.changeMoney(
+        identifier,
+        currency,
+        amount,
+        'add',
+        reason,
+        reference,
+        GetInvokingResource() || 'console',
+      ),
     ),
-  ),
 );
-exports('RemoveMoney', (identifier, currency, amount, reason, reference) =>
-  exportResult(() =>
-    core.changeMoney(
-      identifier,
-      currency,
-      amount,
-      'remove',
-      reason,
-      reference,
-      GetInvokingResource() || 'console',
+globalThis.exports(
+  'RemoveMoney',
+  (identifier, currency, amount, reason, reference) =>
+    exportResult(() =>
+      core.changeMoney(
+        identifier,
+        currency,
+        amount,
+        'remove',
+        reason,
+        reference,
+        GetInvokingResource() || 'console',
+      ),
     ),
-  ),
 );
-exports('SetMoney', (identifier, currency, amount, reason, reference) =>
-  exportResult(() =>
-    core.setMoney(
-      identifier,
-      currency,
-      amount,
-      reason,
-      reference,
-      GetInvokingResource() || 'console',
+globalThis.exports(
+  'SetMoney',
+  (identifier, currency, amount, reason, reference) =>
+    exportResult(() =>
+      core.setMoney(
+        identifier,
+        currency,
+        amount,
+        reason,
+        reference,
+        GetInvokingResource() || 'console',
+      ),
     ),
-  ),
 );
-exports('SetMetadata', (identifier, key, value) =>
+globalThis.exports('SetMetadata', (identifier, key, value) =>
   exportResult(() => core.setMetadata(identifier, key, value)),
 );
-exports('SetJob', (identifier, job) =>
+globalThis.exports('SetJob', (identifier, job) =>
   exportResult(() => core.setJob(identifier, job)),
 );
-exports('SavePlayer', (identifier) =>
+globalThis.exports('SavePlayer', (identifier) =>
   exportResult(() => core.save(identifier)),
 );
 

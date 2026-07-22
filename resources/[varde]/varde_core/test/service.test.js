@@ -71,6 +71,9 @@ test('account, character, login, mutation, and logout form one lifecycle', (t) =
   assert.equal(selected.money.cash, 500);
   assert.equal(service.getPlayerData(12).characterId, created.characterId);
   assert.equal(service.getPlayerData(created.characterId).profile.firstName, 'Kari');
+  assert.deepEqual(service.getPlayers(), [
+    { source: 12, ...service.getPlayerData(12) },
+  ]);
   assert.equal(
     events.some((event) => event.eventName === 'varde:client:playerLoaded'),
     true,

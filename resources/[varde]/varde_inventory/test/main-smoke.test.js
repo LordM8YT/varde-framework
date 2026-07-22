@@ -29,6 +29,9 @@ test('Cfx wiring boots and exposes safe inventory operations', () => {
         ? player
         : null;
     },
+    GetPlayers() {
+      return [];
+    },
     GetPlayerSource(characterId) {
       return characterId === player.characterId ? 7 : 0;
     },

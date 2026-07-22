@@ -16,4 +16,4 @@ files {
 }
 
 client_script 'client/main.lua'
-server_script 'server/main.js'
+server_script 'server.js'

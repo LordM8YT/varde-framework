@@ -6,7 +6,7 @@ author: LordM8YT and contributors
 description: An independent Enhanced-first roleplay framework built from scratch.
 
 tasks:
-  # Download Varde and install only the runtime files required by FXServer.
+  # Download Varde and install only the runtime files required by Cfx Server.
   - action: download_github
     src: https://github.com/LordM8YT/varde-framework
     ref: main
@@ -31,7 +31,7 @@ tasks:
     subpath: resources
     dest: ./resources/[cfx-default]
 
-  # FXServer provides the maintained system chat resource.
+  # Cfx Server provides the maintained system chat resource.
   - action: remove_path
     path: ./resources/[cfx-default]/[gameplay]/chat
 
