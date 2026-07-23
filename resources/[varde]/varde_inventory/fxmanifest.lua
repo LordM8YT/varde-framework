@@ -12,7 +12,8 @@ node_version '26'
 dependency 'varde_core'
 
 files {
-    'config/items.json'
+    'config/items.json',
+    'config/ui.json'
 }
 
 client_script 'client/main.lua'

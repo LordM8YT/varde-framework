@@ -1,9 +1,9 @@
 # varde_inventory
 
 `varde_inventory` is Varde's server-authoritative item layer. It stores player
-inventories and registered stashes in its own SQLite database. The first
-version intentionally exposes stable primitives instead of coupling the data
-model to one inventory UI.
+inventories, registered containers, and temporary world drops in its own
+SQLite database. The data model is exposed through a versioned UI contract
+instead of being coupled to one inventory frontend.
 
 ## Model
 
@@ -11,6 +11,10 @@ model to one inventory UI.
 - Stack identity includes canonical item metadata.
 - Item moves, removals, transfers, and audit entries use SQLite transactions.
 - Clients can move and use only items in their own inventory.
+- UI clients refer only to the opaque `player` and `secondary` sides. Raw
+  container IDs are resolved from a server-held session.
+- Ground drops use server-observed coordinates, server distance checks, and
+  automatic expiry.
 - Adding, removing, transferring, and registering stashes are server exports.
 - Inventory contents are sent only to their owner and are not replicated in
   public state bags.
@@ -45,6 +49,19 @@ exports.varde_inventory:RegisterStash(
     100,
     500000
 )
+
+exports.varde_inventory:RegisterContainer(
+    'vehicle:AB12CD',
+    'vehicle',
+    'AB12CD',
+    'Vehicle trunk',
+    40,
+    100000
+)
+
+exports.varde_inventory:DeleteContainer('vehicle:veh_0123456789abcdef')
+
+exports.varde_inventory:OpenInventory(source, 'stash:police_evidence')
 ```
 
 The same APIs accept a character ID or a full container ID such as
@@ -71,5 +88,15 @@ so a client cannot queue overlapping uses while a handler is suspended.
 `GetInventory`, `GetItemCount`, and `HasItem` read the owner-only cache. The
 `varde_inventory:client:updated` local event fires after every server update.
 
+The frontend contract is documented in
+`docs/ui-contracts/v1/README.md`. `config/ui.json` keeps the NUI disabled by
+default until a frontend is installed. The local
+`varde_inventory:client:uiOpenRequested` event receives the exact bootstrap
+payload for frontend development.
+
 Temporary text commands are included for early-access testing:
-`/inventory`, `/invslot <from> <to> [amount]`, and `/useitem <slot>`.
+`/inventory`, `/invslot <from> <to> [amount]`, `/useitem <slot>`, and
+`/dropitem <slot> [amount]`. While a stash, trunk, or drop is open,
+`/takeitem <secondary slot> [amount] [player slot]` and
+`/putitem <player slot> [amount] [secondary slot]` exercise transfers without
+a visual frontend.

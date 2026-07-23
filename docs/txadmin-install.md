@@ -24,8 +24,8 @@ https://raw.githubusercontent.com/LordM8YT/varde-framework/main/recipe.yaml
 The recipe installs the standard CFX resources, every Varde resource, the MIT
 license, and a ready-to-run `server.cfg`. txAdmin fills in the endpoints,
 maximum player count, server key, server name, and the first administrator.
-That administrator receives both `varde.admin` and `varde.jobs.manage` through
-the standard `group.admin` ACE group.
+That administrator receives `varde.admin`, `varde.jobs.manage`, and
+`varde.vehicles.manage` through the standard `group.admin` ACE group.
 
 ## Early-access note
 

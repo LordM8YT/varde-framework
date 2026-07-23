@@ -1,5 +1,6 @@
 'use strict';
 
+const { randomUUID } = require('node:crypto');
 const { inventoryError } = require('./errors');
 
 const CHARACTER_ID_PATTERN = /^vrd_[a-f0-9]{16}$/;
@@ -7,6 +8,7 @@ const ITEM_NAME_PATTERN = /^[a-z][a-z0-9_]{1,47}$/;
 const CONTAINER_ID_PATTERN =
   /^(player|stash|drop|vehicle):[A-Za-z0-9_.:-]{1,96}$/;
 const STASH_ID_PATTERN = /^[A-Za-z0-9_.:-]{1,64}$/;
+const CONTAINER_TYPE_PATTERN = /^(stash|vehicle)$/;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -73,6 +75,25 @@ function normalizeMetadata(value) {
     throw inventoryError('METADATA_INVALID', 'metadata exceeds 2048 bytes');
   }
   return { metadata, json };
+}
+
+function normalizePosition(value) {
+  const position = {
+    x: Number(value?.x ?? value?.[0]),
+    y: Number(value?.y ?? value?.[1]),
+    z: Number(value?.z ?? value?.[2]),
+  };
+  if (
+    !Number.isFinite(position.x) ||
+    !Number.isFinite(position.y) ||
+    !Number.isFinite(position.z) ||
+    Math.abs(position.x) > 20_000 ||
+    Math.abs(position.y) > 20_000 ||
+    Math.abs(position.z) > 5_000
+  ) {
+    throw inventoryError('POSITION_INVALID', 'world position is invalid');
+  }
+  return position;
 }
 
 class InventoryService {
@@ -175,6 +196,49 @@ class InventoryService {
       integer(slots, 1, 500, 'slots'),
       integer(maxWeight, 0, 2_000_000_000, 'maxWeight'),
     );
+  }
+
+  registerContainer(containerId, type, ownerId, label, slots, maxWeight) {
+    const id = String(containerId || '').trim();
+    const validType = String(type || '').trim().toLowerCase();
+    const owner = String(ownerId || '').trim();
+    const validLabel = String(label || '').trim();
+    if (
+      !CONTAINER_ID_PATTERN.test(id) ||
+      !CONTAINER_TYPE_PATTERN.test(validType) ||
+      !id.startsWith(`${validType}:`)
+    ) {
+      throw inventoryError('VALIDATION_ERROR', 'container id or type is invalid');
+    }
+    if (!owner || owner.length > 96) {
+      throw inventoryError('VALIDATION_ERROR', 'container owner is invalid');
+    }
+    if (!validLabel || validLabel.length > 64) {
+      throw inventoryError('VALIDATION_ERROR', 'container label is invalid');
+    }
+    return this.database.ensureContainer(
+      id,
+      validType,
+      owner,
+      validLabel,
+      integer(slots, 1, 500, 'slots'),
+      integer(maxWeight, 0, 2_000_000_000, 'maxWeight'),
+    );
+  }
+
+  deleteContainer(identifier) {
+    const containerId = this.resolveContainer(identifier);
+    const container = this.requireContainer(containerId);
+    if (container.type === 'player') {
+      throw inventoryError(
+        'CONTAINER_PROTECTED',
+        'player containers are deleted through character cleanup',
+      );
+    }
+    if (container.type === 'drop') {
+      return this.removeDrop(container.id);
+    }
+    return this.database.deleteContainer(container.id);
   }
 
   decorateItem(item) {
@@ -562,6 +626,50 @@ class InventoryService {
     return this.getInventory(containerId);
   }
 
+  splitSlot(identifier, fromSlot, toSlot, amount, actor = 'player') {
+    const containerId = this.resolveContainer(identifier);
+    const container = this.requireContainer(containerId);
+    const sourceSlot = integer(fromSlot, 1, container.slots, 'fromSlot');
+    const targetSlot = integer(toSlot, 1, container.slots, 'toSlot');
+    if (sourceSlot === targetSlot) {
+      throw inventoryError('VALIDATION_ERROR', 'split slots must be different');
+    }
+    const source = this.database.getItem(container.id, sourceSlot);
+    if (!source) {
+      throw inventoryError('ITEM_NOT_FOUND', 'source slot is empty');
+    }
+    const definition = this.itemDefinition(source.name).definition;
+    if (!definition.stackable || source.amount < 2) {
+      throw inventoryError('ITEM_NOT_SPLITTABLE', 'item stack cannot be split');
+    }
+    const splitAmount = integer(amount, 1, source.amount - 1, 'amount');
+    if (this.database.getItem(container.id, targetSlot)) {
+      throw inventoryError('TARGET_OCCUPIED', 'split target slot must be empty');
+    }
+
+    this.database.transaction(() => {
+      this.database.updateAmount(source.id, source.amount - splitAmount);
+      this.database.insertItem(
+        container.id,
+        targetSlot,
+        source.name,
+        splitAmount,
+        source.metadataJson,
+      );
+      this.database.audit(
+        'split',
+        container.id,
+        container.id,
+        source.name,
+        splitAmount,
+        source.metadata,
+        actor,
+      );
+    });
+    this.syncContainer(container.id);
+    return this.getInventory(container.id);
+  }
+
   transfer(
     fromIdentifier,
     toIdentifier,
@@ -633,6 +741,99 @@ class InventoryService {
     };
   }
 
+  createDrop(identifier, slot, amount, position, actor = 'player') {
+    const online = this.resolveOnline(identifier);
+    const validPosition = normalizePosition(position);
+    const dropId = `drop:${randomUUID()}`;
+    const expiresAt = new Date(Date.now() + this.config.dropLifetimeMs).toISOString();
+
+    this.database.ensureContainer(
+      dropId,
+      'drop',
+      online.characterId,
+      'Ground',
+      this.config.dropSlots,
+      this.config.dropMaxWeight,
+    );
+    this.database.createDrop(dropId, validPosition, expiresAt);
+
+    try {
+      const transfer = this.transfer(
+        online.containerId,
+        dropId,
+        slot,
+        amount,
+        1,
+        actor,
+      );
+      const drop = this.database.getDrop(dropId);
+      this.runtime.emitAll?.('varde_inventory:client:dropCreated', drop);
+      return { drop, inventory: transfer.from };
+    } catch (error) {
+      this.database.deleteContainer(dropId);
+      throw error;
+    }
+  }
+
+  getDrops() {
+    return this.database.listDrops();
+  }
+
+  requireDropAccess(containerId, position) {
+    const id = String(containerId || '').trim();
+    if (!id.startsWith('drop:')) {
+      throw inventoryError('DROP_INVALID', 'drop id is invalid');
+    }
+    const drop = this.database.getDrop(id);
+    if (!drop) {
+      throw inventoryError('DROP_NOT_FOUND', 'drop no longer exists');
+    }
+    if (Date.parse(drop.expiresAt) <= Date.now()) {
+      this.removeDrop(id);
+      throw inventoryError('DROP_EXPIRED', 'drop has expired');
+    }
+    const current = normalizePosition(position);
+    const dx = current.x - drop.position.x;
+    const dy = current.y - drop.position.y;
+    const dz = current.z - drop.position.z;
+    if (Math.sqrt(dx * dx + dy * dy + dz * dz) > this.config.dropOpenDistance) {
+      throw inventoryError('DROP_TOO_FAR', 'player is too far from the drop');
+    }
+    return drop;
+  }
+
+  removeDrop(containerId) {
+    const drop = this.database.getDrop(containerId);
+    if (!drop) {
+      return false;
+    }
+    const deleted = this.database.deleteContainer(containerId);
+    if (deleted) {
+      this.runtime.emitAll?.('varde_inventory:client:dropRemoved', containerId);
+    }
+    return deleted;
+  }
+
+  cleanupEmptyDrop(containerId) {
+    if (
+      String(containerId || '').startsWith('drop:') &&
+      this.database.listItems(containerId).length === 0
+    ) {
+      return this.removeDrop(containerId);
+    }
+    return false;
+  }
+
+  cleanupExpiredDrops(now = Date.now()) {
+    let removed = 0;
+    for (const drop of this.database.listDrops()) {
+      if (Date.parse(drop.expiresAt) <= now && this.removeDrop(drop.id)) {
+        removed += 1;
+      }
+    }
+    return removed;
+  }
+
   registerUsableItem(itemName, handler) {
     const item = this.itemDefinition(itemName);
     if (typeof handler !== 'function') {
@@ -697,4 +898,5 @@ class InventoryService {
 module.exports = {
   InventoryService,
   normalizeMetadata,
+  normalizePosition,
 };

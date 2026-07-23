@@ -3,7 +3,7 @@
 Varde is an independent, Enhanced-first roleplay framework for FiveM. It is built from
 scratch and does not require Qbox, QBCore, ESX, ox_lib, or oxmysql.
 
-The first milestone is intentionally small:
+The current pre-alpha foundation includes:
 
 - account creation from the player's Cfx license
 - multiple persistent characters
@@ -11,6 +11,10 @@ The first milestone is intentionally small:
 - server-authoritative sessions
 - persistent cash and bank balances with an audit ledger
 - jobs, metadata, and last position
+- persistent hunger, thirst, stress, and a versioned HUD data provider
+- server-authoritative inventory sessions, world drops, and UI contracts
+- persistent vehicle ownership, keys, garages, locks, and trunks
+- persistent freemode appearance reapplied after spawn
 - a rate-limited client/server RPC layer
 - explicit, minimal state bag replication
 - a public export API for resources built on top of the framework
@@ -27,6 +31,9 @@ resources/
     varde_identity/   Character and spawn UI
     varde_jobs/       Jobs, grades, duty, and permissions
     varde_inventory/  Server-authoritative items and containers
+    varde_status/     Persistent needs and HUD telemetry
+    varde_vehicles/   Ownership, keys, garages, and trunks
+    varde_appearance/ Persistent freemode character appearance
     varde_admin/      ACE-secured operations and audit panel
     varde_phone/      Contacts and offline text messaging
     varde_example/    Commands showing the public API
@@ -35,9 +42,10 @@ server.cfg.example       Minimal development configuration
 
 ## Current status
 
-This repository contains an MVP intended for the FiveM for GTAV Enhanced early
-access release. Unit tests run locally, but the resource still needs an
-integration pass against the first public Cfx Server artifact.
+This repository contains a testable pre-alpha for FiveM for GTAV Enhanced.
+Automated tests cover each persistence and service layer; native-backed vehicle,
+ped, NUI, and marker flows still require the manual Enhanced test plan before
+an alpha tag.
 
 ## Install with txAdmin
 
@@ -79,11 +87,24 @@ Job definitions and the permission API are documented in
 Item, container, and transfer APIs are documented in
 [varde_inventory](<resources/[varde]/varde_inventory/README.md>).
 
+Needs and HUD telemetry are documented in
+[varde_status](<resources/[varde]/varde_status/README.md>).
+
+Vehicle ownership, keys, garages, and trunks are documented in
+[varde_vehicles](<resources/[varde]/varde_vehicles/README.md>).
+
+Persistent character customization is documented in
+[varde_appearance](<resources/[varde]/varde_appearance/README.md>).
+
 Administration permissions and actions are documented in
 [varde_admin](<resources/[varde]/varde_admin/README.md>).
 
 The text-only communication MVP is documented in
 [varde_phone](<resources/[varde]/varde_phone/README.md>).
+
+Frontend contributors should use the versioned
+[Varde UI contracts](docs/ui-contracts/v1/README.md) and bundled mock payloads.
+NUI code never accesses a framework export or database directly.
 
 ## License
 

@@ -1,4 +1,27 @@
 local inventory = nil
+local openPayload = nil
+local drops = {}
+local pendingRequests = {}
+local requestSequence = 0
+local uiOpen = false
+
+local uiConfig = {
+    enabled = false,
+    hotbarSlots = 5,
+    showDropMarkers = true
+}
+
+do
+    local raw = LoadResourceFile(GetCurrentResourceName(), 'config/ui.json')
+    if raw then
+        local ok, parsed = pcall(json.decode, raw)
+        if ok and type(parsed) == 'table' then
+            uiConfig.enabled = parsed.enabled == true
+            uiConfig.hotbarSlots = tonumber(parsed.hotbarSlots) or 5
+            uiConfig.showDropMarkers = parsed.showDropMarkers ~= false
+        end
+    end
+end
 
 local function nativeTrue(value)
     return value == true or value == 1
@@ -32,9 +55,144 @@ local function getItemCount(itemName)
     return count
 end
 
+local function closeInventory(notifyServer)
+    if not uiOpen and not openPayload then
+        return
+    end
+    uiOpen = false
+    openPayload = nil
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'varde:inventory:close' })
+    TriggerEvent('varde_inventory:client:closed')
+    if notifyServer ~= false then
+        requestSequence = requestSequence + 1
+        TriggerServerEvent(
+            'varde_inventory:server:nui',
+            ('close:%s:%s'):format(GetGameTimer(), requestSequence),
+            'close',
+            {}
+        )
+    end
+end
+
+local function present(payload)
+    openPayload = copy(payload)
+    TriggerEvent('varde_inventory:client:uiOpenRequested', copy(payload))
+
+    if not uiConfig.enabled then
+        local playerInventory = payload and payload.player
+        if not playerInventory then
+            message('No inventory is loaded.', 'error')
+            return
+        end
+        message(('%s / %s g - %s slots'):format(
+            playerInventory.weight,
+            playerInventory.maxWeight,
+            playerInventory.slots
+        ))
+        for _, item in ipairs(playerInventory.items or {}) do
+            message(('[%s] %sx %s'):format(item.slot, item.amount, item.label))
+        end
+        if payload.secondary then
+            message(('Opened: %s'):format(payload.secondary.label))
+        end
+        return
+    end
+
+    uiOpen = true
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = 'varde:inventory:open',
+        payload = payload
+    })
+end
+
+local function request(method, payload, callback)
+    requestSequence = requestSequence + 1
+    local requestId = ('%s:%s'):format(GetGameTimer(), requestSequence)
+    if callback then
+        pendingRequests[requestId] = callback
+        SetTimeout(10000, function()
+            local pending = pendingRequests[requestId]
+            if pending then
+                pendingRequests[requestId] = nil
+                pending({
+                    ok = false,
+                    error = {
+                        code = 'TIMEOUT',
+                        message = 'Inventory request timed out.'
+                    }
+                })
+            end
+        end)
+    end
+    TriggerServerEvent(
+        'varde_inventory:server:nui',
+        requestId,
+        method,
+        payload or {}
+    )
+end
+
 RegisterNetEvent('varde_inventory:client:update', function(snapshot)
     inventory = snapshot
+    if openPayload then
+        openPayload.player = copy(snapshot)
+    end
+    if uiOpen then
+        SendNUIMessage({
+            action = 'varde:inventory:update',
+            payload = { player = snapshot }
+        })
+    end
     TriggerEvent('varde_inventory:client:updated', copy(snapshot))
+end)
+
+RegisterNetEvent('varde_inventory:client:open', function(payload)
+    present(payload)
+end)
+
+RegisterNetEvent('varde_inventory:client:nuiResponse', function(requestId, response)
+    local callback = pendingRequests[tostring(requestId)]
+    pendingRequests[tostring(requestId)] = nil
+    if callback then
+        callback(response)
+    end
+    if response and response.ok and type(response.data) == 'table'
+        and response.data.contract == 'varde.inventory.bootstrap.v1' then
+        openPayload = copy(response.data)
+        if uiOpen then
+            SendNUIMessage({
+                action = 'varde:inventory:update',
+                payload = response.data
+            })
+        end
+    elseif response and not response.ok and response.error then
+        message(response.error.message or 'Inventory request failed.', 'error')
+    end
+end)
+
+RegisterNetEvent('varde_inventory:client:drops', function(entries)
+    drops = {}
+    for _, drop in ipairs(entries or {}) do
+        if type(drop) == 'table' and drop.id and drop.position then
+            drops[drop.id] = drop
+        end
+    end
+end)
+
+RegisterNetEvent('varde_inventory:client:dropCreated', function(drop)
+    if type(drop) == 'table' and drop.id and drop.position then
+        drops[drop.id] = drop
+    end
+end)
+
+RegisterNetEvent('varde_inventory:client:dropRemoved', function(dropId)
+    drops[tostring(dropId)] = nil
+    if openPayload and openPayload.secondary
+        and openPayload.secondary.id == tostring(dropId) then
+        closeInventory(false)
+    end
 end)
 
 RegisterNetEvent('varde_inventory:client:error', function(text)
@@ -43,25 +201,32 @@ end)
 
 RegisterNetEvent('varde:client:playerLoaded', function()
     TriggerServerEvent('varde_inventory:server:request')
+    TriggerServerEvent('varde_inventory:server:requestDrops')
 end)
 
 RegisterNetEvent('varde:client:playerLoggedOut', function()
+    closeInventory(false)
     inventory = nil
+    drops = {}
+end)
+
+RegisterNUICallback('inventoryRequest', function(data, callback)
+    local method = type(data) == 'table' and data.method or nil
+    local payload = type(data) == 'table' and data.payload or {}
+    if method == 'close' then
+        closeInventory(true)
+        callback({ ok = true, data = true })
+        return
+    end
+    request(method, payload, callback)
 end)
 
 RegisterCommand('inventory', function()
-    if not inventory then
-        message('No inventory is loaded.')
-        return
-    end
-    message(('%s / %s g — %s slots'):format(
-        inventory.weight,
-        inventory.maxWeight,
-        inventory.slots
-    ))
-    for _, item in ipairs(inventory.items or {}) do
-        message(('[%s] %sx %s'):format(item.slot, item.amount, item.label))
-    end
+    request('bootstrap', {}, function(response)
+        if response and response.ok then
+            present(response.data)
+        end
+    end)
 end, false)
 
 RegisterCommand('invslot', function(_, args)
@@ -85,6 +250,46 @@ RegisterCommand('useitem', function(_, args)
     TriggerServerEvent('varde_inventory:server:use', tonumber(args[1]))
 end, false)
 
+RegisterCommand('dropitem', function(_, args)
+    if not args[1] then
+        message('Usage: /dropitem <slot> [amount]', 'error')
+        return
+    end
+    request('drop', {
+        side = 'player',
+        slot = tonumber(args[1]),
+        amount = args[2] and tonumber(args[2]) or nil
+    })
+end, false)
+
+RegisterCommand('takeitem', function(_, args)
+    if not args[1] then
+        message('Usage: /takeitem <secondary slot> [amount] [player slot]', 'error')
+        return
+    end
+    request('transfer', {
+        from = 'secondary',
+        to = 'player',
+        fromSlot = tonumber(args[1]),
+        amount = args[2] and tonumber(args[2]) or nil,
+        toSlot = args[3] and tonumber(args[3]) or nil
+    })
+end, false)
+
+RegisterCommand('putitem', function(_, args)
+    if not args[1] then
+        message('Usage: /putitem <player slot> [amount] [secondary slot]', 'error')
+        return
+    end
+    request('transfer', {
+        from = 'player',
+        to = 'secondary',
+        fromSlot = tonumber(args[1]),
+        amount = args[2] and tonumber(args[2]) or nil,
+        toSlot = args[3] and tonumber(args[3]) or nil
+    })
+end, false)
+
 exports('GetInventory', function()
     return copy(inventory)
 end)
@@ -97,6 +302,18 @@ exports('HasItem', function(itemName, amount)
     return getItemCount(itemName) >= (tonumber(amount) or 1)
 end)
 
+exports('Open', function()
+    request('bootstrap', {}, function(response)
+        if response and response.ok then
+            present(response.data)
+        end
+    end)
+end)
+
+exports('Close', function()
+    closeInventory(true)
+end)
+
 CreateThread(function()
     while not nativeTrue(NetworkIsPlayerActive(PlayerId())) do
         Wait(250)
@@ -104,5 +321,61 @@ CreateThread(function()
     if GetResourceState('varde_core') == 'started'
         and exports.varde_core:IsLoggedIn() then
         TriggerServerEvent('varde_inventory:server:request')
+        TriggerServerEvent('varde_inventory:server:requestDrops')
+    end
+end)
+
+CreateThread(function()
+    local nextOpenAt = 0
+    while true do
+        local sleep = 750
+        if uiConfig.showDropMarkers and next(drops) then
+            local ped = PlayerPedId()
+            local coords = GetEntityCoords(ped)
+            for dropId, drop in pairs(drops) do
+                local position = drop.position
+                local dx = coords.x - position.x
+                local dy = coords.y - position.y
+                local dz = coords.z - position.z
+                local distance = math.sqrt(dx * dx + dy * dy + dz * dz)
+                if distance < 25.0 then
+                    sleep = 0
+                    DrawMarker(
+                        2,
+                        position.x,
+                        position.y,
+                        position.z + 0.15,
+                        0.0, 0.0, 0.0,
+                        0.0, 0.0, 0.0,
+                        0.18, 0.18, 0.18,
+                        90, 180, 255, 170,
+                        false, true, 2, false, nil, nil, false
+                    )
+                    if distance <= 2.0 and IsControlJustReleased(0, 38)
+                        and GetGameTimer() >= nextOpenAt then
+                        nextOpenAt = GetGameTimer() + 750
+                        TriggerServerEvent('varde_inventory:server:openDrop', dropId)
+                    end
+                end
+            end
+        end
+        Wait(sleep)
+    end
+end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName ~= GetCurrentResourceName() then
+        return
+    end
+    SetNuiFocus(false, false)
+    for requestId, callback in pairs(pendingRequests) do
+        pendingRequests[requestId] = nil
+        callback({
+            ok = false,
+            error = {
+                code = 'RESOURCE_STOPPED',
+                message = 'Inventory resource stopped.'
+            }
+        })
     end
 end)

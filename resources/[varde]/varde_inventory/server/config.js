@@ -64,6 +64,25 @@ function validateConfig(input, resourcePath = process.cwd()) {
       2_000_000_000,
       'playerMaxWeight',
     ),
+    dropSlots: integer(input.dropSlots ?? 10, 1, 100, 'dropSlots'),
+    dropMaxWeight: integer(
+      input.dropMaxWeight ?? 100_000,
+      1,
+      2_000_000_000,
+      'dropMaxWeight',
+    ),
+    dropLifetimeMs: integer(
+      input.dropLifetimeMs ?? 1_800_000,
+      60_000,
+      86_400_000,
+      'dropLifetimeMs',
+    ),
+    dropOpenDistance: integer(
+      input.dropOpenDistance ?? 3,
+      1,
+      20,
+      'dropOpenDistance',
+    ),
     items,
   };
 }

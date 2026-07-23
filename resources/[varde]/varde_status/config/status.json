@@ -1,0 +1,24 @@
+{
+  "databaseFile": "data/status.sqlite",
+  "tickIntervalMs": 60000,
+  "needs": {
+    "hunger": {
+      "default": 100,
+      "minimum": 0,
+      "maximum": 100,
+      "decay": 1
+    },
+    "thirst": {
+      "default": 100,
+      "minimum": 0,
+      "maximum": 100,
+      "decay": 2
+    },
+    "stress": {
+      "default": 0,
+      "minimum": 0,
+      "maximum": 100,
+      "decay": 0
+    }
+  }
+}

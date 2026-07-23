@@ -41,6 +41,9 @@ function createHarness(t) {
     emitClient(source, eventName, payload) {
       events.push({ source, eventName, payload });
     },
+    emitAll(eventName, payload) {
+      events.push({ source: -1, eventName, payload });
+    },
   };
   const config = validateConfig(
     {
@@ -142,6 +145,57 @@ test('slot moves, swaps, and stash transfers are atomic', (t) => {
   );
 });
 
+test('stacks split only into empty slots', (t) => {
+  const { service, database } = createHarness(t);
+  service.addItem(7, 'bandage', 4, {}, 'test', 1);
+
+  const inventory = service.splitSlot(7, 1, 3, 2, 'test');
+  assert.equal(inventory.items.find((item) => item.slot === 1).amount, 2);
+  assert.equal(inventory.items.find((item) => item.slot === 3).amount, 2);
+  assert.equal(database.listAudit(inventory.id).at(-1).action, 'split');
+  assert.throws(() => service.splitSlot(7, 1, 3, 1, 'test'), {
+    code: 'TARGET_OCCUPIED',
+  });
+});
+
+test('world drops validate distance and disappear when emptied', (t) => {
+  const { service, events } = createHarness(t);
+  service.addItem(7, 'bandage', 2, {}, 'test', 1);
+
+  const created = service.createDrop(
+    7,
+    1,
+    1,
+    { x: 100, y: 200, z: 30 },
+    'test',
+  );
+  assert.equal(created.drop.id.startsWith('drop:'), true);
+  assert.equal(service.getDrops().length, 1);
+  assert.equal(
+    service.requireDropAccess(created.drop.id, { x: 101, y: 200, z: 30 }).id,
+    created.drop.id,
+  );
+  assert.throws(
+    () =>
+      service.requireDropAccess(created.drop.id, {
+        x: 120,
+        y: 200,
+        z: 30,
+      }),
+    { code: 'DROP_TOO_FAR' },
+  );
+
+  service.transfer(created.drop.id, 7, 1, 1, 2, 'test');
+  assert.equal(service.cleanupEmptyDrop(created.drop.id), true);
+  assert.equal(service.getDrops().length, 0);
+  assert.equal(
+    events.some(
+      (event) => event.eventName === 'varde_inventory:client:dropRemoved',
+    ),
+    true,
+  );
+});
+
 test('usable item handlers explicitly choose consumption', (t) => {
   const { service } = createHarness(t);
   service.addItem(7, 'bandage', 2, {}, 'test');
@@ -161,4 +215,25 @@ test('character cleanup deletes the private container', (t) => {
   service.addItem(7, 'bandage', 1, {}, 'test');
   assert.equal(service.deleteCharacter('vrd_0123456789abcdef'), true);
   assert.equal(service.getItemCount('vrd_0123456789abcdef', 'bandage'), 0);
+});
+
+test('trusted resources can delete domain containers but not player storage', (t) => {
+  const { service } = createHarness(t);
+  service.registerContainer(
+    'vehicle:veh_0123456789abcdef',
+    'vehicle',
+    'veh_0123456789abcdef',
+    'Vehicle trunk',
+    5,
+    1000,
+  );
+  assert.equal(
+    service.deleteContainer('vehicle:veh_0123456789abcdef'),
+    true,
+  );
+  service.sync(7);
+  assert.throws(
+    () => service.deleteContainer('player:vrd_0123456789abcdef'),
+    { code: 'CONTAINER_PROTECTED' },
+  );
 });

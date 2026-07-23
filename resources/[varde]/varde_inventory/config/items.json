@@ -2,6 +2,10 @@
   "databaseFile": "data/inventory.sqlite",
   "playerSlots": 40,
   "playerMaxWeight": 30000,
+  "dropSlots": 10,
+  "dropMaxWeight": 100000,
+  "dropLifetimeMs": 1800000,
+  "dropOpenDistance": 3,
   "items": {
     "water": {
       "label": "Water",

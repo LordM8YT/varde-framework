@@ -1,0 +1,107 @@
+{
+  "databaseFile": "data/vehicles.sqlite",
+  "interactionDistance": 3,
+  "entityDistance": 6,
+  "trunkSlots": 40,
+  "trunkMaxWeight": 100000,
+  "garages": {
+    "motelgarage": {
+      "label": "Motel Parking",
+      "menu": { "x": 275.58, "y": -344.74, "z": 45.17 },
+      "spawn": { "x": 271.26, "y": -342.32, "z": 44.7, "heading": 159.97 },
+      "store": { "x": 271.26, "y": -342.32, "z": 44.7 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "sapcounsel": {
+      "label": "San Andreas Parking",
+      "menu": { "x": -330.67, "y": -781.12, "z": 33.96 },
+      "spawn": { "x": -337.11, "y": -775.34, "z": 33.56, "heading": 132.09 },
+      "store": { "x": -337.11, "y": -775.34, "z": 33.56 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "spanishave": {
+      "label": "Spanish Ave Parking",
+      "menu": { "x": -1160.46, "y": -741.04, "z": 19.95 },
+      "spawn": { "x": -1165.38, "y": -747.65, "z": 18.94, "heading": 40.45 },
+      "store": { "x": -1165.38, "y": -747.65, "z": 18.94 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "caears24": {
+      "label": "Caears 24 Parking",
+      "menu": { "x": 68.08, "y": 13.15, "z": 69.21 },
+      "spawn": { "x": 72.61, "y": 11.72, "z": 68.47, "heading": 157.59 },
+      "store": { "x": 72.61, "y": 11.72, "z": 68.47 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "littleseoul": {
+      "label": "Little Seoul Parking",
+      "menu": { "x": -463.51, "y": -808.2, "z": 30.54 },
+      "spawn": { "x": -472.24, "y": -813.61, "z": 30.3, "heading": 179.88 },
+      "store": { "x": -472.24, "y": -813.61, "z": 30.3 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "lagunapi": {
+      "label": "Laguna Parking",
+      "menu": { "x": 363.85, "y": 297.97, "z": 103.5 },
+      "spawn": { "x": 367.41, "y": 297.02, "z": 103.2, "heading": 341.08 },
+      "store": { "x": 367.41, "y": 297.02, "z": 103.2 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "airportp": {
+      "label": "Airport Parking",
+      "menu": { "x": -796.07, "y": -2023.26, "z": 9.17 },
+      "spawn": { "x": -793.35, "y": -2020.62, "z": 8.51, "heading": 58.42 },
+      "store": { "x": -793.35, "y": -2020.62, "z": 8.51 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "beachp": {
+      "label": "Beach Parking",
+      "menu": { "x": -1184.21, "y": -1509.65, "z": 4.65 },
+      "spawn": { "x": -1184.4, "y": -1501.88, "z": 4.39, "heading": 214.7 },
+      "store": { "x": -1184.4, "y": -1501.88, "z": 4.39 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "themotorhotel": {
+      "label": "The Motor Hotel Parking",
+      "menu": { "x": 1137.77, "y": 2663.54, "z": 37.9 },
+      "spawn": { "x": 1137.56, "y": 2674.19, "z": 38.17, "heading": 359.95 },
+      "store": { "x": 1137.56, "y": 2674.19, "z": 38.17 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "liqourparking": {
+      "label": "Liqour Parking",
+      "menu": { "x": 960.68, "y": 3609.32, "z": 32.98 },
+      "spawn": { "x": 960.48, "y": 3605.71, "z": 32.98, "heading": 87.09 },
+      "store": { "x": 960.48, "y": 3605.71, "z": 32.98 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "shoreparking": {
+      "label": "Shore Parking",
+      "menu": { "x": 1726.9, "y": 3710.38, "z": 34.26 },
+      "spawn": { "x": 1728.65, "y": 3714.85, "z": 34.18, "heading": 21.26 },
+      "store": { "x": 1728.65, "y": 3714.85, "z": 34.18 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "haanparking": {
+      "label": "Bell Farms Parking",
+      "menu": { "x": 78.34, "y": 6418.74, "z": 31.28 },
+      "spawn": { "x": 70.71, "y": 6425.16, "z": 30.92, "heading": 68.5 },
+      "store": { "x": 70.71, "y": 6425.16, "z": 30.92 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "dumbogarage": {
+      "label": "Dumbo Private Parking",
+      "menu": { "x": 157.26, "y": -3240.0, "z": 7.0 },
+      "spawn": { "x": 165.32, "y": -3236.1, "z": 5.93, "heading": 268.5 },
+      "store": { "x": 165.32, "y": -3236.1, "z": 5.93 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    },
+    "pillboxgarage": {
+      "label": "Pillbox Garage Parking",
+      "menu": { "x": 218.66, "y": -804.08, "z": 30.75 },
+      "spawn": { "x": 229.33, "y": -805.01, "z": 30.54, "heading": 156.79 },
+      "store": { "x": 229.33, "y": -805.01, "z": 30.54 },
+      "blip": { "sprite": 357, "color": 3, "scale": 0.75 }
+    }
+  }
+}

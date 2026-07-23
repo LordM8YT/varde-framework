@@ -1,0 +1,13 @@
+{
+  "name": "varde-status",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Persistent player needs and HUD data provider for Varde Framework",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

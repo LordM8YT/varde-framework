@@ -1,0 +1,36 @@
+{
+  "contract": "varde.phone.bootstrap.v1",
+  "account": {
+    "characterId": "vrd_0123456789abcdef",
+    "phoneNumber": "51234567",
+    "createdAt": "2026-07-23T08:00:00.000Z",
+    "updatedAt": "2026-07-23T08:00:00.000Z"
+  },
+  "contacts": [
+    {
+      "id": 1,
+      "characterId": "vrd_0123456789abcdef",
+      "phoneNumber": "57654321",
+      "name": "Elias Nord",
+      "createdAt": "2026-07-23T08:10:00.000Z",
+      "updatedAt": "2026-07-23T08:10:00.000Z"
+    }
+  ],
+  "conversations": [
+    {
+      "phoneNumber": "57654321",
+      "name": "Elias Nord",
+      "unread": 1,
+      "lastMessage": {
+        "id": 1,
+        "direction": "incoming",
+        "peerNumber": "57654321",
+        "peerName": "Elias Nord",
+        "body": "Meet me at Mission Row.",
+        "sentAt": "2026-07-23T08:15:00.000Z",
+        "readAt": null
+      }
+    }
+  ],
+  "unread": 1
+}

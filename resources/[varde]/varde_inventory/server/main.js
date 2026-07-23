@@ -4,6 +4,7 @@ const { InventoryDatabase } = require('./database');
 const { InventoryError } = require('./errors');
 const { loadConfig } = require('./config');
 const { InventoryService } = require('./service');
+const { InventoryController } = require('./controller');
 
 const resourceName = GetCurrentResourceName();
 const runtime = {
@@ -13,6 +14,9 @@ const runtime = {
   },
   emitClient(source, eventName, ...args) {
     emitNet(eventName, source, ...args);
+  },
+  emitAll(eventName, ...args) {
+    emitNet(eventName, -1, ...args);
   },
   log(level, message) {
     const output = `[varde_inventory] [${level}] ${message}`;
@@ -41,6 +45,7 @@ const core = {
 const config = loadConfig(runtime);
 const database = new InventoryDatabase(config.databaseFile);
 const inventory = new InventoryService(database, config, core, runtime);
+const controller = new InventoryController(inventory);
 const requestTimes = new Map();
 
 function rateLimit(source, key, minimumIntervalMs) {
@@ -90,8 +95,22 @@ function invokingResource() {
   return GetInvokingResource() || 'resource';
 }
 
+function playerPosition(source) {
+  const ped = Number(GetPlayerPed(String(source)));
+  if (!Number.isSafeInteger(ped) || ped <= 0) {
+    throw new InventoryError('PLAYER_PED_MISSING', 'player ped is unavailable');
+  }
+  const coords = GetEntityCoords(ped);
+  return {
+    x: Number(coords?.x ?? coords?.[0]),
+    y: Number(coords?.y ?? coords?.[1]),
+    z: Number(coords?.z ?? coords?.[2]),
+  };
+}
+
 on('varde:server:playerLoaded', (source) => {
   notifyError(source, result(() => inventory.sync(Number(source))));
+  runtime.emitClient(Number(source), 'varde_inventory:client:drops', inventory.getDrops());
 });
 
 on('varde:server:characterDeleted', (_source, characterId) => {
@@ -103,6 +122,66 @@ onNet('varde_inventory:server:request', () => {
   if (rateLimit(source, 'request', 500)) {
     notifyError(source, result(() => inventory.sync(source)));
   }
+});
+
+onNet('varde_inventory:server:requestDrops', () => {
+  const source = Number(global.source);
+  if (rateLimit(source, 'drops', 1000)) {
+    runtime.emitClient(source, 'varde_inventory:client:drops', inventory.getDrops());
+  }
+});
+
+onNet('varde_inventory:server:openDrop', (dropId) => {
+  const source = Number(global.source);
+  if (!rateLimit(source, 'openDrop', 250)) {
+    return;
+  }
+  const response = notifyError(
+    source,
+    result(() => controller.openDrop(source, dropId, playerPosition(source))),
+  );
+  if (response.ok) {
+    runtime.emitClient(source, 'varde_inventory:client:open', response.data);
+  }
+});
+
+onNet('varde_inventory:server:nui', (requestId, method, payload) => {
+  const source = Number(global.source);
+  const id = String(requestId || '').slice(0, 64);
+  if (!id) {
+    return;
+  }
+  if (!rateLimit(source, 'nui', 75)) {
+    runtime.emitClient(
+      source,
+      'varde_inventory:client:nuiResponse',
+      id,
+      {
+        ok: false,
+        error: {
+          code: 'RATE_LIMITED',
+          message: 'inventory requests are arriving too quickly',
+        },
+      },
+    );
+    return;
+  }
+  const response = result(() =>
+    controller.handle(
+      source,
+      method,
+      payload && typeof payload === 'object' ? payload : {},
+      method === 'drop' || controller.sessions.get(source)?.secondary?.startsWith('drop:')
+        ? playerPosition(source)
+        : null,
+    ),
+  );
+  runtime.emitClient(
+    source,
+    'varde_inventory:client:nuiResponse',
+    id,
+    response,
+  );
 });
 
 onNet('varde_inventory:server:move', (fromSlot, toSlot, amount) => {
@@ -201,9 +280,39 @@ globalThis.exports(
 globalThis.exports('RegisterStash', (stashId, label, slots, maxWeight) =>
   result(() => inventory.registerStash(stashId, label, slots, maxWeight)),
 );
+globalThis.exports(
+  'RegisterContainer',
+  (containerId, type, ownerId, label, slots, maxWeight) =>
+    result(() =>
+      inventory.registerContainer(
+        containerId,
+        type,
+        ownerId,
+        label,
+        slots,
+        maxWeight,
+      ),
+    ),
+);
+globalThis.exports('DeleteContainer', (containerId) =>
+  result(() => inventory.deleteContainer(containerId)),
+);
 globalThis.exports('RegisterUsableItem', (itemName, handler) =>
   result(() => inventory.registerUsableItem(itemName, handler)),
 );
+globalThis.exports('OpenInventory', (source, secondaryContainerId) => {
+  const response = result(() =>
+    controller.open(Number(source), secondaryContainerId),
+  );
+  if (response.ok) {
+    runtime.emitClient(Number(source), 'varde_inventory:client:open', response.data);
+  }
+  return response;
+});
+globalThis.exports('CloseInventory', (source) =>
+  result(() => controller.close(Number(source))),
+);
+globalThis.exports('GetDrops', () => inventory.getDrops());
 
 setTimeout(() => {
   for (const player of core.getPlayers()) {
@@ -214,8 +323,16 @@ setTimeout(() => {
   }
 }, 0);
 
+const cleanupTimer = setInterval(() => {
+  const removed = inventory.cleanupExpiredDrops();
+  if (removed > 0) {
+    runtime.log('info', `removed ${removed} expired inventory drop(s)`);
+  }
+}, 60_000);
+
 on('playerDropped', () => {
   const source = Number(global.source);
+  controller.close(source);
   for (const key of requestTimes.keys()) {
     if (key.startsWith(`${source}:`)) {
       requestTimes.delete(key);
@@ -225,6 +342,7 @@ on('playerDropped', () => {
 
 on('onResourceStop', (stoppedResource) => {
   if (stoppedResource === resourceName) {
+    clearInterval(cleanupTimer);
     database.close();
   }
 });
