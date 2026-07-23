@@ -8,6 +8,9 @@ No resource writes another resource's tables.
 | `varde_core` | `data/varde.sqlite` | accounts, characters, money |
 | `varde_jobs` | `data/jobs.sqlite` | job assignments and audit |
 | `varde_inventory` | `data/inventory.sqlite` | containers, items, audit |
+| `varde_status` | `data/status.sqlite` | hunger, thirst, stress |
+| `varde_vehicles` | `data/vehicles.sqlite` | owned vehicles and keys |
+| `varde_appearance` | `data/appearance.sqlite` | freemode appearance |
 | `varde_admin` | `data/admin.sqlite` | admin audit |
 | `varde_phone` | `data/phone.sqlite` | numbers, contacts, messages |
 

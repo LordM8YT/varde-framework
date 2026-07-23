@@ -69,6 +69,16 @@ test('Cfx wiring boots and exposes safe inventory operations', () => {
       handler();
       return 1;
     },
+    setInterval() {
+      return 2;
+    },
+    clearInterval() {},
+    GetPlayerPed() {
+      return 77;
+    },
+    GetEntityCoords() {
+      return { x: 100, y: 200, z: 30 };
+    },
   };
   context.global = context;
   vm.createContext(context);
@@ -81,7 +91,10 @@ test('Cfx wiring boots and exposes safe inventory operations', () => {
     assert.equal(eventHandlers.has('varde:server:playerLoaded'), true);
     assert.equal(eventHandlers.has('varde:server:characterDeleted'), true);
     assert.equal(netHandlers.has('varde_inventory:server:move'), true);
+    assert.equal(netHandlers.has('varde_inventory:server:nui'), true);
     assert.equal(registeredExports.has('AddItem'), true);
+    assert.equal(registeredExports.has('OpenInventory'), true);
+    assert.equal(registeredExports.has('RegisterContainer'), true);
 
     eventHandlers.get('varde:server:playerLoaded')(7, player);
     const added = registeredExports.get('AddItem')(7, 'water', 2, {
@@ -98,6 +111,10 @@ test('Cfx wiring boots and exposes safe inventory operations', () => {
       ),
       true,
     );
+
+    const opened = registeredExports.get('OpenInventory')(7);
+    assert.equal(opened.ok, true);
+    assert.equal(opened.data.contract, 'varde.inventory.bootstrap.v1');
 
     eventHandlers.get('onResourceStop')('varde_inventory');
   } finally {

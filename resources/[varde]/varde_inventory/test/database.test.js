@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { DatabaseSync } = require('node:sqlite');
 const { InventoryDatabase } = require('../server/database');
 
 function createDatabase(t) {
@@ -58,4 +59,87 @@ test('deleting a container cascades its item rows', (t) => {
   assert.equal(database.deleteContainer('stash:delete'), true);
   assert.deepEqual(database.listItems('stash:delete'), []);
   assert.equal(database.deleteContainer('stash:delete'), false);
+});
+
+test('world drop metadata cascades with its container', (t) => {
+  const database = createDatabase(t);
+  database.ensureContainer('drop:test', 'drop', 'owner', 'Ground', 5, 1000);
+  const drop = database.createDrop(
+    'drop:test',
+    { x: 1, y: 2, z: 3 },
+    '2030-01-01T00:00:00.000Z',
+  );
+
+  assert.deepEqual(drop.position, { x: 1, y: 2, z: 3 });
+  assert.equal(database.listDrops().length, 1);
+  database.deleteContainer('drop:test');
+  assert.equal(database.getDrop('drop:test'), null);
+});
+
+test('schema 1 migrates to world drops without losing items', (t) => {
+  const directory = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'varde-inventory-v1-'),
+  );
+  const filename = path.join(directory, 'inventory.sqlite');
+  const legacy = new DatabaseSync(filename);
+  legacy.exec(`
+    PRAGMA foreign_keys = ON;
+    CREATE TABLE inventory_containers (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      owner_id TEXT NOT NULL,
+      label TEXT NOT NULL,
+      slots INTEGER NOT NULL,
+      max_weight INTEGER NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    ) STRICT;
+    CREATE TABLE inventory_items (
+      id INTEGER PRIMARY KEY,
+      container_id TEXT NOT NULL
+        REFERENCES inventory_containers(id) ON DELETE CASCADE,
+      slot INTEGER NOT NULL,
+      item_name TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      metadata_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE (container_id, slot)
+    ) STRICT;
+    CREATE TABLE inventory_audit (
+      id INTEGER PRIMARY KEY,
+      action TEXT NOT NULL,
+      from_container TEXT,
+      to_container TEXT,
+      item_name TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      metadata_json TEXT NOT NULL,
+      actor TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    ) STRICT;
+    INSERT INTO inventory_containers VALUES (
+      'stash:legacy', 'stash', 'legacy', 'Legacy', 5, 1000,
+      '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'
+    );
+    INSERT INTO inventory_items VALUES (
+      1, 'stash:legacy', 1, 'water', 1, '{}',
+      '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'
+    );
+    PRAGMA user_version = 1;
+  `);
+  legacy.close();
+
+  const database = new InventoryDatabase(filename);
+  t.after(() => {
+    database.close();
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
+  assert.equal(database.getItem('stash:legacy', 1).name, 'water');
+  database.ensureContainer('drop:migrated', 'drop', 'owner', 'Ground', 5, 1000);
+  database.createDrop(
+    'drop:migrated',
+    { x: 1, y: 2, z: 3 },
+    '2030-01-01T00:00:00.000Z',
+  );
+  assert.equal(database.getDrop('drop:migrated').id, 'drop:migrated');
 });

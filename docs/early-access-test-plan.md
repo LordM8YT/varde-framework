@@ -15,6 +15,7 @@ Enhanced Cfx Server artifact. Record the exact artifact/build before testing.
    add_principal identifier.license:REPLACE_ME group.admin
    add_ace group.admin varde.admin allow
    add_ace group.admin varde.jobs.manage allow
+   add_ace group.admin varde.vehicles.manage allow
    ```
 
 6. Keep the resource order from the example configuration.
@@ -93,10 +94,62 @@ Use `/vadmin` to give the player `water`, `bandage`, and `phone`.
 6. Register a stash and verify atomic player-to-stash transfer.
 7. Restart the server and confirm items and metadata persist.
 
-Inventory has a text test interface in this milestone; a full drag-and-drop NUI
-is a later feature.
+8. Drop a partial stack with `/dropitem`, open the marker with `E`, take the
+   item back with `/takeitem`, and confirm the empty drop disappears for both
+   clients.
+9. Enable a development inventory frontend only after verifying it uses
+   `varde.inventory.bootstrap.v1` and the `player`/`secondary` sides.
 
-## 6. Admin
+Inventory retains a text fallback while `config/ui.json` has `enabled: false`.
+The drag-and-drop frontend can be developed without changing the server model.
+
+## 6. Status and HUD contract
+
+1. Connect with a new character and inspect the initial hunger, thirst, and
+   stress values through `exports.varde_status:GetStatus()`.
+2. Wait through at least two configured decay intervals.
+3. Restart the resource and server and confirm the latest values persist.
+4. Confirm the local `varde_status:client:hudUpdated` event matches
+   `varde.hud.bootstrap.v1` and includes health, armor, stamina, money, and
+   vehicle telemetry without a visual HUD installed.
+5. Confirm status updates are sent only to their owning client.
+
+## 7. Vehicles and garages
+
+From the console or an ACE-authorized player:
+
+```text
+givevehicle <source> sultan automobile
+```
+
+1. Use `/garage` at one of the configured public parking locations.
+2. Spawn with `/garage spawn <vehicle id>` and confirm the entity is created
+   server-side with the persisted plate.
+3. Lock and unlock with `L` or `/vlock`.
+4. Open the trunk with `/trunk`, move an item into it, and restart the server.
+5. Store the vehicle with `/garage store` while driving through the green
+   marker, then spawn it again and confirm fuel and health persist.
+6. Attempt spawn, store, lock, and trunk events remotely or without a key and
+   confirm the server rejects each action.
+7. Share and revoke a key through a trusted test resource and confirm the
+   target's accessible vehicle list updates.
+
+The default JSON uses the familiar Qbox public parking coordinates, but the
+garage service, database, entities, validation, and inventory integration are
+Varde-owned.
+
+## 8. Appearance
+
+1. Create one male and one female character and confirm the matching freemode
+   model is applied after spawn.
+2. Save components, props, head blend, overlays, hair, and eye values through a
+   trusted test/editor resource.
+3. Respawn and restart the server; confirm the same appearance is reapplied.
+4. Submit an unallowed model, duplicate component, and out-of-range value and
+   confirm each save is rejected.
+5. Run `/resetappearance` and confirm the gender-based default returns.
+
+## 9. Admin
 
 With an authorized player:
 
@@ -111,7 +164,7 @@ With an unauthorized player, confirm `/vadmin` does not expose the roster.
 Then grant only `varde.admin.open` and confirm it still does not expose the
 roster without `varde.admin.players`.
 
-## 7. Text phone
+## 10. Text phone
 
 The phone does not require an inventory item by default. Open it with `F1` or
 `/phone`.
@@ -128,20 +181,21 @@ With players A and B:
 
 Voice calling is intentionally outside this milestone.
 
-## 8. Restart and data gate
+## 11. Restart and data gate
 
 1. Run `npm run data:backup` while the server is online.
 2. Verify the generated backup with `node tools/varde-data.js verify <path>`.
 3. Restart each Varde resource individually.
 4. Restart the complete server.
 5. Re-run `npm run data:inspect`.
-6. Confirm characters, money, jobs, duty state, inventory, audit records, phone
-   numbers, contacts, and messages have the expected persisted state.
+6. Confirm characters, money, jobs, duty state, inventory, status, vehicles,
+   appearance, audit records, phone numbers, contacts, and messages have the
+   expected persisted state.
 
 Do not test restoration until the Cfx Server process is fully stopped. Follow
 [Database lifecycle](database-lifecycle.md).
 
-## 9. Performance and diagnostics
+## 12. Performance and diagnostics
 
 With at least two clients:
 

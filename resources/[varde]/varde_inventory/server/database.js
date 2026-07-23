@@ -66,7 +66,7 @@ class InventoryDatabase {
     const version = Number(
       this.database.prepare('PRAGMA user_version').get().user_version,
     );
-    if (version > 1) {
+    if (version > 2) {
       throw inventoryError(
         'DATABASE_NEWER',
         `database schema ${version} is newer than this resource supports`,
@@ -118,7 +118,40 @@ class InventoryDatabase {
         CREATE INDEX inventory_audit_container_idx
           ON inventory_audit(from_container, to_container, id DESC);
 
-        PRAGMA user_version = 1;
+        CREATE TABLE inventory_drops (
+          container_id TEXT PRIMARY KEY
+            REFERENCES inventory_containers(id) ON DELETE CASCADE,
+          x REAL NOT NULL,
+          y REAL NOT NULL,
+          z REAL NOT NULL,
+          created_at TEXT NOT NULL,
+          expires_at TEXT NOT NULL
+        ) STRICT;
+
+        CREATE INDEX inventory_drops_expiry_idx
+          ON inventory_drops(expires_at);
+
+        PRAGMA user_version = 2;
+        COMMIT;
+      `);
+    } else if (version === 1) {
+      this.database.exec(`
+        BEGIN IMMEDIATE;
+
+        CREATE TABLE inventory_drops (
+          container_id TEXT PRIMARY KEY
+            REFERENCES inventory_containers(id) ON DELETE CASCADE,
+          x REAL NOT NULL,
+          y REAL NOT NULL,
+          z REAL NOT NULL,
+          created_at TEXT NOT NULL,
+          expires_at TEXT NOT NULL
+        ) STRICT;
+
+        CREATE INDEX inventory_drops_expiry_idx
+          ON inventory_drops(expires_at);
+
+        PRAGMA user_version = 2;
         COMMIT;
       `);
     }
@@ -179,6 +212,17 @@ class InventoryDatabase {
         FROM inventory_audit
         WHERE from_container = ? OR to_container = ?
         ORDER BY id ASC
+      `),
+      createDrop: this.database.prepare(`
+        INSERT INTO inventory_drops (
+          container_id, x, y, z, created_at, expires_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+      `),
+      getDrop: this.database.prepare(`
+        SELECT * FROM inventory_drops WHERE container_id = ?
+      `),
+      listDrops: this.database.prepare(`
+        SELECT * FROM inventory_drops ORDER BY created_at ASC
       `),
     };
   }
@@ -291,6 +335,48 @@ class InventoryDatabase {
         actor: row.actor,
         createdAt: row.created_at,
       }));
+  }
+
+  createDrop(containerId, position, expiresAt) {
+    const createdAt = nowIso();
+    this.statements.createDrop.run(
+      containerId,
+      position.x,
+      position.y,
+      position.z,
+      createdAt,
+      expiresAt,
+    );
+    return this.getDrop(containerId);
+  }
+
+  getDrop(containerId) {
+    const row = this.statements.getDrop.get(containerId);
+    return row
+      ? {
+          id: row.container_id,
+          position: {
+            x: Number(row.x),
+            y: Number(row.y),
+            z: Number(row.z),
+          },
+          createdAt: row.created_at,
+          expiresAt: row.expires_at,
+        }
+      : null;
+  }
+
+  listDrops() {
+    return this.statements.listDrops.all().map((row) => ({
+      id: row.container_id,
+      position: {
+        x: Number(row.x),
+        y: Number(row.y),
+        z: Number(row.z),
+      },
+      createdAt: row.created_at,
+      expiresAt: row.expires_at,
+    }));
   }
 
   close() {

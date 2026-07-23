@@ -1,0 +1,12 @@
+{
+  "databaseFile": "data/appearance.sqlite",
+  "allowedModels": [
+    "mp_m_freemode_01",
+    "mp_f_freemode_01"
+  ],
+  "genderModels": {
+    "male": "mp_m_freemode_01",
+    "female": "mp_f_freemode_01",
+    "unspecified": "mp_m_freemode_01"
+  }
+}

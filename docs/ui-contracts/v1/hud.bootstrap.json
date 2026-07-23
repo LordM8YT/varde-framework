@@ -1,0 +1,35 @@
+{
+  "contract": "varde.hud.bootstrap.v1",
+  "player": {
+    "characterId": "vrd_0123456789abcdef",
+    "name": "Nora Varde",
+    "job": {
+      "name": "police",
+      "label": "Los Santos Police",
+      "grade": 1,
+      "gradeLabel": "Officer",
+      "onDuty": true
+    },
+    "money": {
+      "cash": 1250,
+      "bank": 28750
+    }
+  },
+  "status": {
+    "health": 100,
+    "armor": 35,
+    "hunger": 82,
+    "thirst": 67,
+    "stress": 12,
+    "stamina": 94
+  },
+  "vehicle": null,
+  "visibility": {
+    "hud": true,
+    "minimap": true,
+    "money": false,
+    "job": true,
+    "weapon": false,
+    "vehicle": false
+  }
+}

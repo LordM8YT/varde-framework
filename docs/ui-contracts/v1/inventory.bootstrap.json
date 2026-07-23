@@ -1,0 +1,46 @@
+{
+  "contract": "varde.inventory.bootstrap.v1",
+  "player": {
+    "id": "player:vrd_0123456789abcdef",
+    "type": "player",
+    "label": "Player inventory",
+    "slots": 40,
+    "weight": 2350,
+    "maxWeight": 30000,
+    "items": [
+      {
+        "slot": 1,
+        "name": "water",
+        "label": "Water",
+        "amount": 2,
+        "weight": 500,
+        "totalWeight": 1000,
+        "stackable": true,
+        "maxStack": 10,
+        "metadata": {}
+      },
+      {
+        "slot": 2,
+        "name": "phone",
+        "label": "Phone",
+        "amount": 1,
+        "weight": 350,
+        "totalWeight": 350,
+        "stackable": false,
+        "maxStack": 1,
+        "metadata": {
+          "condition": 100
+        }
+      }
+    ]
+  },
+  "secondary": null,
+  "hotbar": [1, 2, 3, 4, 5],
+  "capabilities": {
+    "move": true,
+    "split": true,
+    "use": true,
+    "drop": true,
+    "transfer": false
+  }
+}
