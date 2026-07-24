@@ -46,6 +46,9 @@ test('Cfx wiring boots and completes connection, creation, and selection', () =>
     GetConvarInt(_name, fallback) {
       return fallback;
     },
+    GetConvar(_name, fallback) {
+      return fallback;
+    },
     GetNumPlayerIdentifiers() {
       return 2;
     },
@@ -104,6 +107,7 @@ test('Cfx wiring boots and completes connection, creation, and selection', () =>
     assert.equal(netHandlers.has('varde:server:rpc'), true);
     assert.equal(eventHandlers.has('playerConnecting'), true);
     assert.equal(registeredExports.has('AddMoney'), true);
+    assert.equal(registeredExports.has('Locale'), true);
 
     let deferralResult = 'not-called';
     eventHandlers.get('playerConnecting')(

@@ -11,6 +11,8 @@ const state = {
   spawns: [],
   selectedCharacterId: null,
   createSlot: null,
+  locale: {},
+  localeName: 'en',
 };
 
 const elements = {
@@ -39,6 +41,45 @@ const elements = {
   deleteCopy: document.querySelector('#delete-copy'),
   confirmDelete: document.querySelector('#confirm-delete'),
 };
+
+function translation(key) {
+  let current = state.locale;
+  for (const part of String(key).split('.')) {
+    if (!current || typeof current !== 'object' || !(part in current)) {
+      return undefined;
+    }
+    current = current[part];
+  }
+  return typeof current === 'string' ? current : undefined;
+}
+
+function t(key, replacements = {}, fallback = key) {
+  const value = translation(key) || fallback;
+  return String(value).replace(/\{\{([A-Za-z0-9_]+)\}\}/g, (match, name) => (
+    replacements[name] === undefined ? match : String(replacements[name])
+  ));
+}
+
+function applyStaticLocale() {
+  document.documentElement.lang = state.localeName;
+  document.querySelectorAll('[data-i18n]').forEach((element) => {
+    element.textContent = t(
+      element.dataset.i18n,
+      {},
+      element.textContent.trim(),
+    );
+  });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
+    element.setAttribute(
+      'aria-label',
+      t(
+        element.dataset.i18nAriaLabel,
+        {},
+        element.getAttribute('aria-label') || '',
+      ),
+    );
+  });
+}
 
 async function post(endpoint, payload = {}) {
   if (!isNui) {
@@ -80,6 +121,15 @@ function initials(character) {
   return `${character.profile.firstName[0] || ''}${character.profile.lastName[0] || ''}`.toUpperCase();
 }
 
+function jobLabel(job) {
+  if (!job) return t('ui.unemployed', {}, 'Unemployed');
+  return t(
+    `labels.jobs.${job.name}.label`,
+    {},
+    job.label || job.name || t('ui.unemployed', {}, 'Unemployed'),
+  );
+}
+
 function renderSpawnOptions() {
   elements.spawnSelect.replaceChildren();
   for (const spawn of state.spawns) {
@@ -119,7 +169,7 @@ function renderDetail() {
   const { profile, job } = character;
   elements.detailName.textContent = `${profile.firstName} ${profile.lastName}`;
   elements.detailId.textContent = character.characterId;
-  elements.detailJob.textContent = job?.label || job?.name || 'Unemployed';
+  elements.detailJob.textContent = jobLabel(job);
   elements.detailNationality.textContent = profile.nationality;
   elements.detailBirthdate.textContent = profile.birthDate;
   elements.portraitInitials.textContent = initials(character);
@@ -129,7 +179,11 @@ function renderDetail() {
 
 function renderCharacters() {
   elements.characterList.replaceChildren();
-  elements.slotCounter.textContent = `${state.characters.length} / ${state.maxCharacters} slots`;
+  elements.slotCounter.textContent = t(
+    'ui.slots',
+    { current: state.characters.length, max: state.maxCharacters },
+    `${state.characters.length} / ${state.maxCharacters} slots`,
+  );
 
   for (let slot = 1; slot <= state.maxCharacters; slot += 1) {
     const character = state.characters.find((candidate) => candidate.slot === slot);
@@ -145,11 +199,17 @@ function renderCharacters() {
       );
       button.innerHTML = `
         <div class="card-top">
-          <span class="slot-number">SLOT ${String(slot).padStart(2, '0')}</span>
-          <small>${character.job?.label || character.job?.name || 'Unemployed'}</small>
+          <span class="slot-number"></span>
+          <small></small>
         </div>
         <strong></strong>
       `;
+      button.querySelector('.slot-number').textContent = t(
+        'ui.slot',
+        { slot: String(slot).padStart(2, '0') },
+        `SLOT ${String(slot).padStart(2, '0')}`,
+      );
+      button.querySelector('small').textContent = jobLabel(character.job);
       button.querySelector('strong').textContent =
         `${character.profile.firstName} ${character.profile.lastName}`;
       button.addEventListener('click', () => {
@@ -161,11 +221,20 @@ function renderCharacters() {
       button.classList.add('is-empty');
       button.innerHTML = `
         <div class="card-top">
-          <span class="slot-number">SLOT ${String(slot).padStart(2, '0')}</span>
-          <small>Available</small>
+          <span class="slot-number"></span>
+          <small></small>
         </div>
-        <strong>Create new identity</strong>
+        <strong></strong>
       `;
+      button.querySelector('.slot-number').textContent = t(
+        'ui.slot',
+        { slot: String(slot).padStart(2, '0') },
+        `SLOT ${String(slot).padStart(2, '0')}`,
+      );
+      button.querySelector('small').textContent =
+        t('ui.available', {}, 'Available');
+      button.querySelector('strong').textContent =
+        t('ui.createNew', {}, 'Create new identity');
       button.addEventListener('click', () => {
         state.selectedCharacterId = null;
         state.createSlot = slot;
@@ -187,6 +256,11 @@ function render() {
 }
 
 function applyBootstrap(data) {
+  state.locale = data.locale && typeof data.locale === 'object'
+    ? data.locale
+    : state.locale;
+  state.localeName = data.localeName || state.localeName;
+  applyStaticLocale();
   state.title = data.title || 'Varde';
   state.subtitle = data.subtitle || 'Choose your path';
   state.allowDelete = data.allowDelete !== false;
@@ -229,7 +303,11 @@ elements.createForm.addEventListener('submit', async (event) => {
   setBusy(submitButton, false);
 
   if (!response.ok) {
-    toast(response.error?.message || 'Character could not be created.', true);
+    toast(
+      response.error?.message
+        || t('ui.createFailed', {}, 'Character could not be created.'),
+      true,
+    );
     return;
   }
 
@@ -250,7 +328,7 @@ elements.createForm.addEventListener('submit', async (event) => {
 
   state.createSlot = null;
   elements.createForm.reset();
-  toast('Identity created.');
+  toast(t('ui.created', {}, 'Identity created.'));
   render();
 });
 
@@ -266,19 +344,31 @@ elements.playButton.addEventListener('click', async () => {
   setBusy(elements.playButton, false);
 
   if (!response.ok) {
-    toast(response.error?.message || 'Character could not be selected.', true);
+    toast(
+      response.error?.message
+        || t('ui.selectFailed', {}, 'Character could not be selected.'),
+      true,
+    );
     return;
   }
   if (!isNui) {
-    toast(`Entering as ${character.profile.firstName}.`);
+    toast(t(
+      'ui.enteringAs',
+      { name: character.profile.firstName },
+      `Entering as ${character.profile.firstName}.`,
+    ));
   }
 });
 
 elements.deleteButton.addEventListener('click', () => {
   const character = selectedCharacter();
   if (!character) return;
-  elements.deleteCopy.textContent =
-    `${character.profile.firstName} ${character.profile.lastName} and all associated data will be removed permanently.`;
+  const name = `${character.profile.firstName} ${character.profile.lastName}`;
+  elements.deleteCopy.textContent = t(
+    'ui.deleteCopy',
+    { name },
+    `${name} and all associated data will be removed permanently.`,
+  );
   elements.deleteDialog.showModal();
 });
 
@@ -294,7 +384,11 @@ elements.deleteDialog.addEventListener('close', async () => {
   setBusy(elements.confirmDelete, false);
 
   if (!response.ok) {
-    toast(response.error?.message || 'Character could not be deleted.', true);
+    toast(
+      response.error?.message
+        || t('ui.deleteFailed', {}, 'Character could not be deleted.'),
+      true,
+    );
     return;
   }
 
@@ -304,7 +398,7 @@ elements.deleteDialog.addEventListener('close', async () => {
     );
   }
   state.selectedCharacterId = null;
-  toast('Character deleted.');
+  toast(t('ui.deleted', {}, 'Character deleted.'));
   render();
 });
 
@@ -327,7 +421,11 @@ window.addEventListener('keydown', async (event) => {
   }
   const response = await post('close');
   if (!response.ok) {
-    toast(response.error?.message || 'Select a character first.', true);
+    toast(
+      response.error?.message
+        || t('ui.selectFirst', {}, 'Select a character first.'),
+      true,
+    );
   }
 });
 

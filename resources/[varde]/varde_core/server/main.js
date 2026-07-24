@@ -5,6 +5,7 @@ const { FrameworkError } = require('./errors');
 const { loadConfig } = require('./config');
 const { CoreService } = require('./service');
 const { RpcServer } = require('./rpc');
+const { LocaleService } = require('./locale');
 
 const resourceName = GetCurrentResourceName();
 
@@ -15,6 +16,9 @@ const runtime = {
   },
   getConvarInt(name, fallback) {
     return GetConvarInt(name, fallback);
+  },
+  getConvar(name, fallback) {
+    return GetConvar(name, fallback);
   },
   emitClient(source, eventName, ...args) {
     emitNet(eventName, source, ...args);
@@ -38,6 +42,7 @@ const runtime = {
 };
 
 const config = loadConfig(runtime);
+const locale = new LocaleService(runtime, config.locale, config.fallbackLocale);
 const database = new FrameworkDatabase(config.databaseFile);
 const core = new CoreService(database, config, runtime);
 const rpc = new RpcServer(runtime);
@@ -206,7 +211,7 @@ on('playerConnecting', (name, _setKickReason, deferrals) => {
 
   setTimeout(() => {
     try {
-      deferrals.update('Preparing your Varde Framework account...');
+      deferrals.update(locale.get('core.connection.preparing'));
       core.attachConnection(
         playerSource,
         identifier,
@@ -218,7 +223,7 @@ on('playerConnecting', (name, _setKickReason, deferrals) => {
       const message =
         error instanceof FrameworkError
           ? error.message
-          : 'Varde Framework could not prepare your account.';
+          : locale.get('core.connection.failed');
       runtime.log('error', error?.stack || String(error));
       deferrals.done(message);
     }
@@ -243,6 +248,11 @@ on('playerDropped', () => {
 globalThis.exports('GetPlayerData', (identifier) =>
   core.getPlayerData(identifier),
 );
+globalThis.exports('Locale', (key, replacements, fallback) =>
+  locale.get(key, replacements, fallback),
+);
+globalThis.exports('GetLocale', () => locale.locale);
+globalThis.exports('GetLocaleData', (namespace) => locale.getData(namespace));
 globalThis.exports('GetPlayers', () => core.getPlayers());
 globalThis.exports('GetPlayerSource', (characterId) => {
   const player = core.getPlayer(characterId);
@@ -333,5 +343,5 @@ on('onResourceStop', (stoppedResource) => {
 
 runtime.log(
   'info',
-  `started with SQLite at ${config.databaseFile} and ${config.maxCharacters} character slots`,
+  `started with SQLite at ${config.databaseFile}, locale ${locale.locale}, and ${config.maxCharacters} character slots`,
 );

@@ -86,6 +86,7 @@ function notifyError(source, response) {
       Number(source),
       'varde_inventory:client:error',
       response.error.message,
+      response.error.code,
     );
   }
   return response;

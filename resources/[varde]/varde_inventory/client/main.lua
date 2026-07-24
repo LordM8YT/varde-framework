@@ -5,6 +5,26 @@ local pendingRequests = {}
 local requestSequence = 0
 local uiOpen = false
 
+local function locale(key, replacements, fallback)
+    return exports.varde_core:Locale(key, replacements, fallback)
+end
+
+local function localizeResponse(response)
+    if type(response) ~= 'table' or response.ok ~= false
+        or type(response.error) ~= 'table' then
+        return response
+    end
+    local code = tostring(response.error.code or '')
+    if code ~= '' then
+        local key = ('errors.%s'):format(code)
+        local translated = locale(key)
+        if translated ~= key then
+            response.error.message = translated
+        end
+    end
+    return response
+end
+
 local uiConfig = {
     enabled = false,
     hotbarSlots = 5,
@@ -32,6 +52,22 @@ local function copy(value)
         return nil
     end
     return json.decode(json.encode(value))
+end
+
+local function localizeInventory(value)
+    if type(value) ~= 'table' then
+        return value
+    end
+    for _, item in ipairs(value.items or {}) do
+        if type(item.name) == 'string' then
+            item.label = locale(
+                ('labels.items.%s'):format(item.name),
+                nil,
+                item.label or item.name
+            )
+        end
+    end
+    return value
 end
 
 local function message(text, kind)
@@ -76,25 +112,52 @@ local function closeInventory(notifyServer)
 end
 
 local function present(payload)
+    payload = copy(payload) or {}
+    localizeInventory(payload.player)
+    localizeInventory(payload.secondary)
     openPayload = copy(payload)
     TriggerEvent('varde_inventory:client:uiOpenRequested', copy(payload))
 
     if not uiConfig.enabled then
         local playerInventory = payload and payload.player
         if not playerInventory then
-            message('No inventory is loaded.', 'error')
+            message(locale(
+                'inventory.noInventory',
+                nil,
+                'No inventory is loaded.'
+            ), 'error')
             return
         end
-        message(('%s / %s g - %s slots'):format(
-            playerInventory.weight,
-            playerInventory.maxWeight,
-            playerInventory.slots
+        message(locale(
+            'inventory.summary',
+            {
+                weight = playerInventory.weight,
+                maxWeight = playerInventory.maxWeight,
+                slots = playerInventory.slots
+            },
+            ('%s / %s g - %s slots'):format(
+                playerInventory.weight,
+                playerInventory.maxWeight,
+                playerInventory.slots
+            )
         ))
         for _, item in ipairs(playerInventory.items or {}) do
-            message(('[%s] %sx %s'):format(item.slot, item.amount, item.label))
+            message(locale(
+                'inventory.item',
+                {
+                    slot = item.slot,
+                    amount = item.amount,
+                    label = item.label
+                },
+                ('[%s] %sx %s'):format(item.slot, item.amount, item.label)
+            ))
         end
         if payload.secondary then
-            message(('Opened: %s'):format(payload.secondary.label))
+            message(locale(
+                'inventory.opened',
+                { label = payload.secondary.label },
+                ('Opened: %s'):format(payload.secondary.label)
+            ))
         end
         return
     end
@@ -103,7 +166,12 @@ local function present(payload)
     SetNuiFocus(true, true)
     SendNUIMessage({
         action = 'varde:inventory:open',
-        payload = payload
+        payload = payload,
+        localeName = exports.varde_core:GetLocale(),
+        locale = {
+            inventory = exports.varde_core:GetLocaleData('inventory'),
+            labels = exports.varde_core:GetLocaleData('labels')
+        }
     })
 end
 
@@ -120,7 +188,11 @@ local function request(method, payload, callback)
                     ok = false,
                     error = {
                         code = 'TIMEOUT',
-                        message = 'Inventory request timed out.'
+                        message = locale(
+                            'inventory.requestTimedOut',
+                            nil,
+                            'Inventory request timed out.'
+                        )
                     }
                 })
             end
@@ -135,6 +207,7 @@ local function request(method, payload, callback)
 end
 
 RegisterNetEvent('varde_inventory:client:update', function(snapshot)
+    snapshot = localizeInventory(copy(snapshot))
     inventory = snapshot
     if openPayload then
         openPayload.player = copy(snapshot)
@@ -153,6 +226,7 @@ RegisterNetEvent('varde_inventory:client:open', function(payload)
 end)
 
 RegisterNetEvent('varde_inventory:client:nuiResponse', function(requestId, response)
+    response = localizeResponse(response)
     local callback = pendingRequests[tostring(requestId)]
     pendingRequests[tostring(requestId)] = nil
     if callback then
@@ -168,7 +242,15 @@ RegisterNetEvent('varde_inventory:client:nuiResponse', function(requestId, respo
             })
         end
     elseif response and not response.ok and response.error then
-        message(response.error.message or 'Inventory request failed.', 'error')
+        message(
+            response.error.message
+                or locale(
+                    'inventory.requestFailed',
+                    nil,
+                    'Inventory request failed.'
+                ),
+            'error'
+        )
     end
 end)
 
@@ -195,8 +277,10 @@ RegisterNetEvent('varde_inventory:client:dropRemoved', function(dropId)
     end
 end)
 
-RegisterNetEvent('varde_inventory:client:error', function(text)
-    message(text, 'error')
+RegisterNetEvent('varde_inventory:client:error', function(text, code)
+    local key = code and ('errors.%s'):format(tostring(code)) or nil
+    local translated = key and locale(key) or nil
+    message(translated and translated ~= key and translated or text, 'error')
 end)
 
 RegisterNetEvent('varde:client:playerLoaded', function()
@@ -231,7 +315,11 @@ end, false)
 
 RegisterCommand('invslot', function(_, args)
     if not args[1] or not args[2] then
-        message('Usage: /invslot <from> <to> [amount]', 'error')
+        message(locale(
+            'inventory.usageMove',
+            nil,
+            'Usage: /invslot <from> <to> [amount]'
+        ), 'error')
         return
     end
     TriggerServerEvent(
@@ -244,7 +332,7 @@ end, false)
 
 RegisterCommand('useitem', function(_, args)
     if not args[1] then
-        message('Usage: /useitem <slot>', 'error')
+        message(locale('inventory.usageUse', nil, 'Usage: /useitem <slot>'), 'error')
         return
     end
     TriggerServerEvent('varde_inventory:server:use', tonumber(args[1]))
@@ -252,7 +340,11 @@ end, false)
 
 RegisterCommand('dropitem', function(_, args)
     if not args[1] then
-        message('Usage: /dropitem <slot> [amount]', 'error')
+        message(locale(
+            'inventory.usageDrop',
+            nil,
+            'Usage: /dropitem <slot> [amount]'
+        ), 'error')
         return
     end
     request('drop', {
@@ -264,7 +356,11 @@ end, false)
 
 RegisterCommand('takeitem', function(_, args)
     if not args[1] then
-        message('Usage: /takeitem <secondary slot> [amount] [player slot]', 'error')
+        message(locale(
+            'inventory.usageTake',
+            nil,
+            'Usage: /takeitem <secondary slot> [amount] [player slot]'
+        ), 'error')
         return
     end
     request('transfer', {
@@ -278,7 +374,11 @@ end, false)
 
 RegisterCommand('putitem', function(_, args)
     if not args[1] then
-        message('Usage: /putitem <player slot> [amount] [secondary slot]', 'error')
+        message(locale(
+            'inventory.usagePut',
+            nil,
+            'Usage: /putitem <player slot> [amount] [secondary slot]'
+        ), 'error')
         return
     end
     request('transfer', {
@@ -374,7 +474,11 @@ AddEventHandler('onResourceStop', function(resourceName)
             ok = false,
             error = {
                 code = 'RESOURCE_STOPPED',
-                message = 'Inventory resource stopped.'
+                message = locale(
+                    'inventory.resourceStopped',
+                    nil,
+                    'Inventory resource stopped.'
+                )
             }
         })
     end

@@ -13,6 +13,9 @@ the owning service may be refactored without changing these payloads.
 - Private owner data is sent only to its owning client.
 - Additive fields may be introduced in v1. Removing or changing a field
   requires a new contract version.
+- Full NUI bootstrap messages may include `localeName` and a namespaced
+  `locale` dictionary beside the contract payload. Locale data is presentation
+  metadata and is not trusted by server mutations.
 - Timestamps are UTC ISO 8601 strings.
 - Weights are integer grams and money values are integer account units.
 

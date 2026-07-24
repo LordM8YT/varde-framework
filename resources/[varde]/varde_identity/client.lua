@@ -4,6 +4,10 @@ local isOpen = false
 local isLoading = false
 local selectedSpawn = 'last'
 
+local function locale(key, replacements, fallback)
+    return exports.varde_core:Locale(key, replacements, fallback)
+end
+
 local function nativeTrue(value)
     return value == true or value == 1
 end
@@ -15,13 +19,23 @@ local function send(action, data)
     })
 end
 
+local function uiLocale()
+    local data = exports.varde_core:GetLocaleData('identity')
+    data.labels = exports.varde_core:GetLocaleData('labels')
+    return data
+end
+
 local function publicSpawns()
     local spawns = {}
     for _, spawn in ipairs(VardeIdentityConfig.spawns) do
         spawns[#spawns + 1] = {
             id = spawn.id,
-            label = spawn.label,
-            description = spawn.description
+            label = locale(spawn.labelKey, nil, spawn.label or spawn.id),
+            description = locale(
+                spawn.descriptionKey,
+                nil,
+                spawn.description or ''
+            )
         }
     end
     return spawns
@@ -54,12 +68,22 @@ local function refreshMenu(callback)
     exports.varde_core:CallAsync('characters:bootstrap', {}, function(response)
         if response.ok then
             send('identity:update', {
-                title = VardeIdentityConfig.title,
-                subtitle = VardeIdentityConfig.subtitle,
+                title = locale(
+                    VardeIdentityConfig.titleKey,
+                    nil,
+                    VardeIdentityConfig.title or 'Varde'
+                ),
+                subtitle = locale(
+                    VardeIdentityConfig.subtitleKey,
+                    nil,
+                    VardeIdentityConfig.subtitle or 'Choose your path'
+                ),
                 allowDelete = VardeIdentityConfig.allowDelete,
                 characters = response.data.characters,
                 maxCharacters = response.data.maxCharacters,
-                spawns = publicSpawns()
+                spawns = publicSpawns(),
+                localeName = exports.varde_core:GetLocale(),
+                locale = uiLocale()
             })
         end
 
@@ -78,8 +102,14 @@ local function openMenu()
     refreshMenu(function(response)
         isLoading = false
         if not response.ok then
-            print(('[varde_identity] Could not open identity: %s'):format(
-                response.error and response.error.message or 'unknown error'
+            print(('[varde_identity] %s: %s'):format(
+                locale(
+                    'identity.errors.openFailed',
+                    nil,
+                    'Could not open identity'
+                ),
+                response.error and response.error.message
+                    or locale('common.unknown', nil, 'unknown error')
             ))
             return
         end
@@ -94,7 +124,14 @@ RegisterNUICallback('createCharacter', function(data, cb)
     if not isOpen then
         cb({
             ok = false,
-            error = { code = 'MENU_CLOSED', message = 'Identity menu is closed.' }
+            error = {
+                code = 'MENU_CLOSED',
+                message = locale(
+                    'identity.errors.menuClosed',
+                    nil,
+                    'Identity menu is closed.'
+                )
+            }
         })
         return
     end
@@ -111,7 +148,14 @@ RegisterNUICallback('deleteCharacter', function(data, cb)
     if not isOpen or not VardeIdentityConfig.allowDelete then
         cb({
             ok = false,
-            error = { code = 'DELETE_DISABLED', message = 'Character deletion is disabled.' }
+            error = {
+                code = 'DELETE_DISABLED',
+                message = locale(
+                    'identity.errors.deleteDisabled',
+                    nil,
+                    'Character deletion is disabled.'
+                )
+            }
         })
         return
     end
@@ -132,7 +176,14 @@ RegisterNUICallback('selectCharacter', function(data, cb)
     if not isOpen then
         cb({
             ok = false,
-            error = { code = 'MENU_CLOSED', message = 'Identity menu is closed.' }
+            error = {
+                code = 'MENU_CLOSED',
+                message = locale(
+                    'identity.errors.menuClosed',
+                    nil,
+                    'Identity menu is closed.'
+                )
+            }
         })
         return
     end
@@ -159,7 +210,11 @@ RegisterNUICallback('close', function(_, cb)
         ok = false,
         error = {
             code = 'CHARACTER_REQUIRED',
-            message = 'Select a character before closing the menu.'
+            message = locale(
+                'identity.errors.characterRequired',
+                nil,
+                'Select a character before closing the menu.'
+            )
         }
     })
 end)

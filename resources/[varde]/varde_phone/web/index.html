@@ -3,29 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Varde Phone</title>
+    <title data-i18n="ui.documentTitle">Varde Phone</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <main id="app" class="app is-hidden" aria-live="polite">
-        <section class="phone-shell" aria-label="Varde Phone">
+        <section class="phone-shell" aria-label="Varde Phone" data-i18n-aria-label="ui.phoneLabel">
             <div class="speaker" aria-hidden="true"></div>
 
             <div class="screen">
                 <header class="status-bar">
                     <span id="clock">12:00</span>
-                    <span class="status-icons" aria-label="Connected">● 5G ▰</span>
+                    <span class="status-icons" aria-label="Connected" data-i18n-aria-label="ui.connected">● 5G ▰</span>
                 </header>
 
                 <header class="app-header">
-                    <button id="back-button" class="icon-button is-hidden" type="button" aria-label="Back">
+                    <button id="back-button" class="icon-button is-hidden" type="button" aria-label="Back" data-i18n-aria-label="ui.back">
                         ←
                     </button>
                     <div>
                         <p id="header-kicker" class="eyebrow">Varde Phone</p>
                         <h1 id="header-title">Messages</h1>
                     </div>
-                    <button id="close-button" class="icon-button" type="button" aria-label="Close">
+                    <button id="close-button" class="icon-button" type="button" aria-label="Close" data-i18n-aria-label="ui.close">
                         ×
                     </button>
                 </header>
@@ -35,50 +35,51 @@
                         <div id="conversation-list" class="list"></div>
                         <div id="messages-empty" class="empty-state">
                             <div class="empty-icon" aria-hidden="true">✦</div>
-                            <h2>No messages yet</h2>
-                            <p>Add a contact, then start a private text conversation.</p>
+                            <h2 data-i18n="ui.noMessages">No messages yet</h2>
+                            <p data-i18n="ui.noMessagesHint">Add a contact, then start a private text conversation.</p>
                         </div>
                     </section>
 
                     <section id="thread-view" class="view is-hidden">
                         <div id="message-list" class="message-list"></div>
                         <form id="message-form" class="composer">
-                            <label class="sr-only" for="message-input">Message</label>
+                            <label class="sr-only" for="message-input" data-i18n="ui.message">Message</label>
                             <textarea
                                 id="message-input"
                                 name="body"
                                 maxlength="500"
                                 rows="1"
                                 placeholder="Message…"
+                                data-i18n-placeholder="ui.messagePlaceholder"
                                 required
                             ></textarea>
-                            <button class="send-button" type="submit" aria-label="Send message">↑</button>
+                            <button class="send-button" type="submit" aria-label="Send message" data-i18n-aria-label="ui.sendMessage">↑</button>
                         </form>
                     </section>
 
                     <section id="contacts-view" class="view is-hidden">
                         <button id="add-contact-button" class="add-contact" type="button">
                             <span>＋</span>
-                            Add contact
+                            <span data-i18n="ui.addContact">Add contact</span>
                         </button>
                         <div id="contact-list" class="list"></div>
                         <div id="contacts-empty" class="empty-state">
                             <div class="empty-icon" aria-hidden="true">◇</div>
-                            <h2>No contacts</h2>
-                            <p>Save a registered Varde phone number here.</p>
+                            <h2 data-i18n="ui.noContacts">No contacts</h2>
+                            <p data-i18n="ui.noContactsHint">Save a registered Varde phone number here.</p>
                         </div>
                     </section>
                 </div>
 
-                <nav id="tab-bar" class="tab-bar" aria-label="Phone apps">
+                <nav id="tab-bar" class="tab-bar" aria-label="Phone apps" data-i18n-aria-label="ui.phoneApps">
                     <button class="tab is-active" data-view="messages" type="button">
                         <span class="tab-icon">▰</span>
-                        Messages
+                        <span data-i18n="ui.messages">Messages</span>
                         <span id="unread-badge" class="badge is-hidden">0</span>
                     </button>
                     <button class="tab" data-view="contacts" type="button">
                         <span class="tab-icon">♙</span>
-                        Contacts
+                        <span data-i18n="ui.contacts">Contacts</span>
                     </button>
                 </nav>
             </div>
@@ -90,19 +91,19 @@
 
         <dialog id="contact-dialog">
             <form id="contact-form">
-                <p class="eyebrow">New contact</p>
-                <h2>Save a number</h2>
+                <p class="eyebrow" data-i18n="ui.newContact">New contact</p>
+                <h2 data-i18n="ui.saveNumber">Save a number</h2>
                 <label class="field">
-                    <span>Name</span>
+                    <span data-i18n="ui.name">Name</span>
                     <input name="name" minlength="1" maxlength="48" autocomplete="off" required>
                 </label>
                 <label class="field">
-                    <span>Phone number</span>
+                    <span data-i18n="ui.phoneNumber">Phone number</span>
                     <input name="phoneNumber" inputmode="numeric" minlength="8" maxlength="15" required>
                 </label>
                 <div class="dialog-actions">
-                    <button id="contact-cancel" class="button button-ghost" type="button">Cancel</button>
-                    <button class="button button-primary" type="submit">Save contact</button>
+                    <button id="contact-cancel" class="button button-ghost" type="button" data-i18n="ui.cancel">Cancel</button>
+                    <button class="button button-primary" type="submit" data-i18n="ui.saveContact">Save contact</button>
                 </div>
             </form>
         </dialog>

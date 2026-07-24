@@ -15,6 +15,7 @@ The current pre-alpha foundation includes:
 - server-authoritative inventory sessions, world drops, and UI contracts
 - persistent vehicle ownership, keys, garages, locks, and trunks
 - persistent freemode appearance reapplied after spawn
+- shared English/Norwegian localization with English fallback
 - a rate-limited client/server RPC layer
 - explicit, minimal state bag replication
 - a public export API for resources built on top of the framework
@@ -73,6 +74,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for design and review rules,
 [SECURITY.md](SECURITY.md) for private reporting, and
 [Database lifecycle](docs/database-lifecycle.md) for backup and migration
 procedures.
+
+Language is selected once in `server.cfg` with `setr varde_locale "en"` or
+`setr varde_locale "no"`. See [Localization](docs/localization.md) for the
+runtime API and instructions for adding another language.
 
 The first public artifact should be validated with the
 [Enhanced early-access test plan](docs/early-access-test-plan.md) before an

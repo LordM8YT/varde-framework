@@ -78,13 +78,26 @@ function result(work) {
   }
 }
 
-function notify(source, message, kind = 'info') {
+function translate(key, replacements, fallback) {
+  try {
+    const handler = globalThis.exports.varde_core.Locale;
+    if (typeof handler === 'function') {
+      return handler(key, replacements, fallback);
+    }
+  } catch {
+    // Older core during a rolling restart: keep the English fallback.
+  }
+  return fallback;
+}
+
+function notify(source, message, kind = 'info', code = null) {
   if (Number(source) > 0) {
     runtime.emitClient(
       Number(source),
       'varde_jobs:client:message',
       String(message),
       kind,
+      code,
     );
   } else {
     runtime.log(kind === 'error' ? 'error' : 'info', String(message));
@@ -94,7 +107,7 @@ function notify(source, message, kind = 'info') {
 function handle(source, work) {
   const response = result(work);
   if (!response.ok) {
-    notify(source, response.error.message, 'error');
+    notify(source, response.error.message, 'error', response.error.code);
   }
   return response;
 }
@@ -164,7 +177,15 @@ RegisterCommand(
   'assignjob',
   (source, args) => {
     if (!mayManage(source)) {
-      notify(source, 'You do not have permission to manage jobs.', 'error');
+      notify(
+        source,
+        translate(
+          'jobs.permissionDenied',
+          null,
+          'You do not have permission to manage jobs.',
+        ),
+        'error',
+      );
       return;
     }
     const target = Number(args[0]);
@@ -174,7 +195,14 @@ RegisterCommand(
       jobs.assign(target, jobName, grade, actorForCommand(source)),
     );
     if (response.ok) {
-      notify(source, `Assigned ${jobName} grade ${grade} to source ${target}.`);
+      notify(
+        source,
+        translate(
+          'jobs.assigned',
+          { job: jobName, grade, source: target },
+          `Assigned ${jobName} grade ${grade} to source ${target}.`,
+        ),
+      );
     }
   },
   false,
@@ -184,7 +212,15 @@ RegisterCommand(
   'removejob',
   (source, args) => {
     if (!mayManage(source)) {
-      notify(source, 'You do not have permission to manage jobs.', 'error');
+      notify(
+        source,
+        translate(
+          'jobs.permissionDenied',
+          null,
+          'You do not have permission to manage jobs.',
+        ),
+        'error',
+      );
       return;
     }
     const target = Number(args[0]);
@@ -193,7 +229,14 @@ RegisterCommand(
       jobs.remove(target, jobName, actorForCommand(source)),
     );
     if (response.ok) {
-      notify(source, `Removed ${jobName} from source ${target}.`);
+      notify(
+        source,
+        translate(
+          'jobs.removed',
+          { job: jobName, source: target },
+          `Removed ${jobName} from source ${target}.`,
+        ),
+      );
     }
   },
   false,

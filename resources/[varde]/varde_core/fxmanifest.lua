@@ -16,7 +16,8 @@ dependencies {
 }
 
 files {
-    'config/defaults.json'
+    'config/defaults.json',
+    'locales/*.json'
 }
 
 client_script 'client/main.lua'

@@ -3,6 +3,10 @@ local activeJob = nil
 local rawConfig = LoadResourceFile(GetCurrentResourceName(), 'config/jobs.json')
 local jobConfig = rawConfig and json.decode(rawConfig) or { jobs = {} }
 
+local function locale(key, replacements, fallback)
+    return exports.varde_core:Locale(key, replacements, fallback)
+end
+
 local function nativeTrue(value)
     return value == true or value == 1
 end
@@ -23,14 +27,39 @@ local function message(text, kind)
     print(('[varde_jobs] %s'):format(tostring(text)))
 end
 
+local function localizeJob(job)
+    if type(job) ~= 'table' or type(job.name) ~= 'string' then
+        return job
+    end
+    job.label = locale(
+        ('labels.jobs.%s.label'):format(job.name),
+        nil,
+        job.label or job.name
+    )
+    if job.grade ~= nil then
+        job.gradeLabel = locale(
+            ('labels.jobs.%s.grades.%s'):format(job.name, tostring(job.grade)),
+            nil,
+            job.gradeLabel or tostring(job.grade)
+        )
+    end
+    return job
+end
+
 RegisterNetEvent('varde_jobs:client:update', function(snapshot)
     jobs = snapshot and snapshot.jobs or {}
     activeJob = snapshot and snapshot.activeJob or nil
+    for _, job in ipairs(jobs) do
+        localizeJob(job)
+    end
+    localizeJob(activeJob)
     TriggerEvent('varde_jobs:client:updated', copy(snapshot))
 end)
 
-RegisterNetEvent('varde_jobs:client:message', function(text, kind)
-    message(text, kind)
+RegisterNetEvent('varde_jobs:client:message', function(text, kind, code)
+    local key = code and ('errors.%s'):format(tostring(code)) or nil
+    local translated = key and locale(key) or nil
+    message(translated and translated ~= key and translated or text, kind)
 end)
 
 RegisterNetEvent('varde:client:playerLoggedOut', function()
@@ -44,32 +73,47 @@ end)
 
 RegisterCommand('jobs', function()
     if #jobs == 0 then
-        message('No jobs are available.')
+        message(locale('jobs.noJobs', nil, 'No jobs are available.'))
         return
     end
 
     for _, job in ipairs(jobs) do
         local marker = job.active and '*' or '-'
-        local duty = job.onDuty and 'on duty' or 'off duty'
-        message(('%s %s — %s (%s)'):format(
-            marker,
-            job.label,
-            job.gradeLabel,
-            duty
+        local duty = job.onDuty
+            and locale('jobs.onDuty', nil, 'on duty')
+            or locale('jobs.offDuty', nil, 'off duty')
+        message(locale(
+            'jobs.status',
+            {
+                marker = marker,
+                job = job.label,
+                grade = job.gradeLabel,
+                duty = duty
+            },
+            ('%s %s — %s (%s)'):format(
+                marker,
+                job.label,
+                job.gradeLabel,
+                duty
+            )
         ))
     end
 end, false)
 
 RegisterCommand('job', function(_, args)
     if not args[1] then
-        message('Usage: /job <name>', 'error')
+        message(locale('jobs.usageJob', nil, 'Usage: /job <name>'), 'error')
         return
     end
     TriggerServerEvent('varde_jobs:server:setActive', args[1])
 end, false)
 
 RegisterCommand('duty', function()
-    message('Use a duty marker on the map to clock in or out.')
+    message(locale(
+        'jobs.useDutyMarker',
+        nil,
+        'Use a duty marker on the map to clock in or out.'
+    ))
 end, false)
 
 exports('GetJobs', function()
@@ -166,12 +210,14 @@ CreateThread(function()
                 end
                 if distance <= (tonumber(point.radius) or 2.0) then
                     BeginTextCommandDisplayHelp('STRING')
-                    AddTextComponentSubstringPlayerName(
+                    AddTextComponentSubstringPlayerName(locale(
+                        assignment.onDuty and 'jobs.clockOut' or 'jobs.clockIn',
+                        { job = assignment.label },
                         ('Press ~INPUT_CONTEXT~ to clock %s for %s'):format(
                             assignment.onDuty and 'out' or 'in',
                             assignment.label
                         )
-                    )
+                    ))
                     EndTextCommandDisplayHelp(0, false, true, -1)
                     if nativeTrue(IsControlJustReleased(0, 38))
                         and GetGameTimer() >= cooldownUntil then

@@ -16,7 +16,52 @@ const state = {
   permissions: {},
   selectedSource: null,
   busy: false,
+  locale: {},
+  localeName: 'en',
 };
+
+function translation(key) {
+  let current = state.locale;
+  for (const part of String(key).split('.')) {
+    if (!current || typeof current !== 'object' || !(part in current)) {
+      return undefined;
+    }
+    current = current[part];
+  }
+  return typeof current === 'string' ? current : undefined;
+}
+
+function t(key, replacements = {}, fallback = key) {
+  const value = translation(key) || fallback;
+  return String(value).replace(/\{\{([A-Za-z0-9_]+)\}\}/g, (match, name) => (
+    replacements[name] === undefined ? match : String(replacements[name])
+  ));
+}
+
+function applyStaticLocale() {
+  document.documentElement.lang = state.localeName;
+  document.querySelectorAll('[data-i18n]').forEach((element) => {
+    element.textContent = t(
+      element.dataset.i18n,
+      {},
+      element.textContent.trim(),
+    );
+  });
+  const attributes = [
+    ['data-i18n-aria-label', 'aria-label'],
+    ['data-i18n-placeholder', 'placeholder'],
+    ['data-i18n-value', 'value'],
+  ];
+  for (const [dataAttribute, attribute] of attributes) {
+    document.querySelectorAll(`[${dataAttribute}]`).forEach((element) => {
+      const key = element.getAttribute(dataAttribute);
+      element.setAttribute(
+        attribute,
+        t(key, {}, element.getAttribute(attribute) || ''),
+      );
+    });
+  }
+}
 
 function resourceName() {
   return typeof GetParentResourceName === 'function'
@@ -36,7 +81,10 @@ async function nui(endpoint, payload = {}) {
 async function request(method, payload = {}) {
   const response = await nui('adminRequest', { method, payload });
   if (!response.ok) {
-    throw new Error(response.error?.message || 'Admin action failed.');
+    throw new Error(
+      response.error?.message
+        || t('errors.actionFailed', {}, 'Admin action failed.'),
+    );
   }
   return response.data;
 }
@@ -59,6 +107,24 @@ function selectedPlayer() {
 
 function hasPermission(permission) {
   return state.permissions['varde.admin'] || state.permissions[permission];
+}
+
+function jobLabel(job) {
+  if (!job) return t('ui.noJob', {}, 'No job');
+  return t(`labels.jobs.${job.name}.label`, {}, job.label || job.name);
+}
+
+function gradeLabel(job) {
+  if (!job) return '';
+  return t(
+    `labels.jobs.${job.name}.grades.${job.grade}`,
+    {},
+    job.gradeLabel || t(
+      'ui.gradeNumber',
+      { grade: job.grade },
+      `Grade ${job.grade}`,
+    ),
+  );
 }
 
 function applyPermissions() {
@@ -106,7 +172,9 @@ function renderPlayers() {
       const name = document.createElement('strong');
       name.textContent = player.name || player.serverName;
       const job = document.createElement('small');
-      job.textContent = player.job?.label || 'No active job';
+      job.textContent = player.job
+        ? jobLabel(player.job)
+        : t('ui.noActiveJob', {}, 'No active job');
       identity.append(name, job);
 
       const ping = document.createElement('span');
@@ -126,18 +194,28 @@ function renderDetail() {
     return;
   }
 
-  document.querySelector('#selected-source').textContent =
-    `Source ${player.source} · ${player.serverName}`;
+  document.querySelector('#selected-source').textContent = t(
+    'ui.source',
+    { source: player.source, serverName: player.serverName },
+    `Source ${player.source} · ${player.serverName}`,
+  );
   document.querySelector('#selected-name').textContent =
     player.name || player.serverName;
   document.querySelector('#selected-character').textContent = player.characterId;
   document.querySelector('#selected-job').textContent = player.job
-    ? `${player.job.label} · ${player.job.gradeLabel || `Grade ${player.job.grade}`}`
-    : 'No job';
+    ? t(
+      'ui.jobGrade',
+      {
+        job: jobLabel(player.job),
+        grade: gradeLabel(player.job),
+      },
+      `${jobLabel(player.job)} · ${gradeLabel(player.job)}`,
+    )
+    : t('ui.noJob', {}, 'No job');
   document.querySelector('#selected-ping').textContent = `${player.ping} ms`;
   document.querySelector('#freeze-button').textContent = player.frozen
-    ? 'Unfreeze'
-    : 'Freeze';
+    ? t('ui.unfreeze', {}, 'Unfreeze')
+    : t('ui.freeze', {}, 'Freeze');
 }
 
 function render() {
@@ -157,13 +235,17 @@ async function refreshPlayers() {
   render();
 }
 
-async function runAction(method, payload = {}, successMessage = 'Action completed.') {
+async function runAction(
+  method,
+  payload = {},
+  successMessage = t('ui.actionCompleted', {}, 'Action completed.'),
+) {
   if (state.busy) {
     return;
   }
   const player = selectedPlayer();
   if (!player) {
-    showToast('Choose a player first.', true);
+    showToast(t('ui.choosePlayerFirst', {}, 'Choose a player first.'), true);
     return;
   }
   state.busy = true;
@@ -212,7 +294,7 @@ document.querySelector('#economy-form').addEventListener('submit', (event) => {
   runAction(
     'economy:set',
     { currency: data.get('currency'), amount: Number(data.get('amount')) },
-    'Balance updated.',
+    t('ui.balanceUpdated', {}, 'Balance updated.'),
   );
 });
 
@@ -222,7 +304,7 @@ document.querySelector('#job-form').addEventListener('submit', (event) => {
   runAction(
     'job:assign',
     { jobName: data.get('jobName'), grade: Number(data.get('grade')) },
-    'Job assigned.',
+    t('ui.jobAssigned', {}, 'Job assigned.'),
   );
 });
 
@@ -232,7 +314,7 @@ document.querySelector('#inventory-form').addEventListener('submit', (event) => 
   runAction(
     'inventory:add',
     { itemName: data.get('itemName'), amount: Number(data.get('amount')) },
-    'Item added.',
+    t('ui.itemAdded', {}, 'Item added.'),
   );
 });
 
@@ -248,13 +330,17 @@ document.querySelector('#kick-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const data = new FormData(event.currentTarget);
   kickDialog.close();
-  runAction('player:kick', { reason: data.get('reason') }, 'Player removed.');
+  runAction(
+    'player:kick',
+    { reason: data.get('reason') },
+    t('ui.playerRemoved', {}, 'Player removed.'),
+  );
 });
 
 document.querySelector('#refresh-button').addEventListener('click', async () => {
   try {
     await refreshPlayers();
-    showToast('Player list refreshed.');
+    showToast(t('ui.playersRefreshed', {}, 'Player list refreshed.'));
   } catch (error) {
     showToast(error.message, true);
   }
@@ -272,20 +358,28 @@ document.querySelector('#audit-button').addEventListener('click', async () => {
         const date = new Date(entry.createdAt);
         time.textContent = Number.isNaN(date.valueOf())
           ? entry.createdAt
-          : date.toLocaleString();
+          : date.toLocaleString(state.localeName);
 
         const detail = document.createElement('span');
         const action = document.createElement('strong');
         action.textContent = escapeText(entry.action);
         const actors = document.createElement('small');
-        actors.textContent =
-          `Actor ${entry.actorSource} → ${entry.targetSource || 'system'}`;
+        actors.textContent = t(
+          'ui.actorTarget',
+          {
+            actor: entry.actorSource,
+            target: entry.targetSource || t('ui.system', {}, 'system'),
+          },
+          `Actor ${entry.actorSource} → ${entry.targetSource || 'system'}`,
+        );
         detail.append(action, actors);
 
         const status = document.createElement('span');
         status.className = 'audit-status';
         status.classList.toggle('is-failure', entry.status === 'failure');
-        status.textContent = entry.status;
+        status.textContent = entry.status === 'failure'
+          ? t('ui.statusFailure', {}, 'failure')
+          : t('ui.statusSuccess', {}, entry.status || 'success');
         row.append(time, detail, status);
         return row;
       }),
@@ -324,6 +418,11 @@ window.addEventListener('keydown', (event) => {
 window.addEventListener('message', (event) => {
   if (event.data?.type === 'open') {
     const payload = event.data.payload || {};
+    state.locale = event.data.locale && typeof event.data.locale === 'object'
+      ? event.data.locale
+      : state.locale;
+    state.localeName = event.data.localeName || state.localeName;
+    applyStaticLocale();
     state.players = Array.isArray(payload.players) ? payload.players : [];
     state.permissions = payload.permissions || {};
     state.selectedSource = null;

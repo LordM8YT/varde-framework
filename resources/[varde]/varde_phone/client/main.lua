@@ -4,6 +4,26 @@ local requestSequence = 0
 local pending = {}
 local phoneOpen = false
 
+local function locale(key, replacements, fallback)
+    return exports.varde_core:Locale(key, replacements, fallback)
+end
+
+local function localizeResponse(response)
+    if type(response) ~= 'table' or response.ok ~= false
+        or type(response.error) ~= 'table' then
+        return response
+    end
+    local code = tostring(response.error.code or '')
+    if code ~= '' then
+        local key = ('errors.%s'):format(code)
+        local translated = locale(key)
+        if translated ~= key then
+            response.error.message = translated
+        end
+    end
+    return response
+end
+
 local function message(text, kind)
     local color = kind == 'error' and { 220, 70, 70 } or { 90, 180, 255 }
     TriggerEvent('chat:addMessage', {
@@ -33,7 +53,7 @@ local function call(method, payload)
         end
         settled = true
         pending[requestId] = nil
-        deferred:resolve(response)
+        deferred:resolve(localizeResponse(response))
     end
 
     TriggerServerEvent(
@@ -50,7 +70,11 @@ local function call(method, payload)
                 ok = false,
                 error = {
                     code = 'TIMEOUT',
-                    message = 'The phone request timed out.'
+                    message = locale(
+                        'phone.errors.timeout',
+                        nil,
+                        'The phone request timed out.'
+                    )
                 }
             })
         end
@@ -72,14 +96,20 @@ local function openPhone()
     end
     local response = call('bootstrap', {})
     if not response.ok then
-        message(response.error and response.error.message or 'Phone unavailable.', 'error')
+        message(
+            response.error and response.error.message
+                or locale('phone.errors.unavailable', nil, 'Phone unavailable.'),
+            'error'
+        )
         return
     end
     phoneOpen = true
     SetNuiFocus(true, true)
     SendNUIMessage({
         type = 'open',
-        payload = response.data
+        payload = response.data,
+        localeName = exports.varde_core:GetLocale(),
+        locale = exports.varde_core:GetLocaleData('phone')
     })
 end
 
@@ -97,8 +127,16 @@ RegisterNetEvent('varde_phone:client:newMessage', function(incoming)
             payload = incoming
         })
     else
-        message(('New message from %s'):format(
-            incoming.peerName or incoming.peerNumber or 'Unknown'
+        message(locale(
+            'phone.newMessage',
+            {
+                name = incoming.peerName
+                    or incoming.peerNumber
+                    or locale('common.unknown', nil, 'Unknown')
+            },
+            ('New message from %s'):format(
+                incoming.peerName or incoming.peerNumber or 'Unknown'
+            )
         ))
     end
 end)
@@ -121,7 +159,9 @@ RegisterNetEvent('varde_phone:client:contactsUpdated', function()
         if response.ok then
             SendNUIMessage({
                 type = 'bootstrap',
-                payload = response.data
+                payload = response.data,
+                localeName = exports.varde_core:GetLocale(),
+                locale = exports.varde_core:GetLocaleData('phone')
             })
         end
     end
@@ -134,7 +174,12 @@ RegisterNetEvent('varde:client:playerLoggedOut', function()
 end)
 
 RegisterCommand('phone', openPhone, false)
-RegisterKeyMapping('phone', 'Open Varde Phone', 'keyboard', 'F1')
+RegisterKeyMapping(
+    'phone',
+    locale('phone.openKey', nil, 'Open Varde Phone'),
+    'keyboard',
+    'F1'
+)
 
 RegisterNUICallback('phoneRequest', function(data, callback)
     local response = call(data.method, data.payload or {})
@@ -156,7 +201,11 @@ AddEventHandler('onResourceStop', function(stoppedResource)
             ok = false,
             error = {
                 code = 'RESOURCE_STOPPED',
-                message = 'varde_phone stopped'
+                message = locale(
+                    'errors.RESOURCE_STOPPED',
+                    nil,
+                    'Varde Phone stopped.'
+                )
             }
         })
         pending[requestId] = nil

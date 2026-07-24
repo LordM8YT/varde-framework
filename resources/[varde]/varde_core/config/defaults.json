@@ -1,4 +1,6 @@
 {
+  "locale": "en",
+  "fallbackLocale": "en",
   "databaseFile": "data/varde.sqlite",
   "maxCharacters": 4,
   "saveIntervalMs": 60000,

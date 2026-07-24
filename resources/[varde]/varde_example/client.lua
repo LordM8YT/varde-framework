@@ -10,7 +10,7 @@ local function showError(response)
     local error = response and response.error or {}
     message(('%s: %s'):format(
         error.code or 'UNKNOWN_ERROR',
-        error.message or 'unknown error'
+        error.message or locale('example.unknownError', nil, 'unknown error')
     ), { 255, 100, 100 })
 end
 
@@ -22,7 +22,11 @@ RegisterCommand('characters', function()
         end
 
         if #response.data == 0 then
-            message('No characters. Use /newchar <slot> <first> <last> <YYYY-MM-DD>.')
+            message(locale(
+                'example.noCharacters',
+                nil,
+                'No characters. Use /newchar <slot> <first> <last> <YYYY-MM-DD>.'
+            ))
             return
         end
 
@@ -44,7 +48,11 @@ RegisterCommand('newchar', function(_, args)
     local birthDate = args[4]
 
     if not slot or not firstName or not lastName or not birthDate then
-        message('Usage: /newchar <slot> <first> <last> <YYYY-MM-DD>')
+        message(locale(
+            'example.usageNewCharacter',
+            nil,
+            'Usage: /newchar <slot> <first> <last> <YYYY-MM-DD>'
+        ))
         return
     end
 
@@ -60,18 +68,30 @@ RegisterCommand('newchar', function(_, args)
             showError(response)
             return
         end
-        message(('Created %s %s with id %s. Use /playchar %s.'):format(
-            response.data.profile.firstName,
-            response.data.profile.lastName,
-            response.data.characterId,
-            response.data.characterId
+        message(locale(
+            'example.characterCreated',
+            {
+                firstName = response.data.profile.firstName,
+                lastName = response.data.profile.lastName,
+                characterId = response.data.characterId
+            },
+            ('Created %s %s with id %s. Use /playchar %s.'):format(
+                response.data.profile.firstName,
+                response.data.profile.lastName,
+                response.data.characterId,
+                response.data.characterId
+            )
         ), { 120, 255, 160 })
     end)
 end, false)
 
 RegisterCommand('playchar', function(_, args)
     if not args[1] then
-        message('Usage: /playchar <characterId>')
+        message(locale(
+            'example.usagePlayCharacter',
+            nil,
+            'Usage: /playchar <characterId>'
+        ))
         return
     end
 
@@ -83,9 +103,16 @@ RegisterCommand('playchar', function(_, args)
                 showError(response)
                 return
             end
-            message(('Logged in as %s %s.'):format(
-                response.data.profile.firstName,
-                response.data.profile.lastName
+            message(locale(
+                'example.loggedIn',
+                {
+                    firstName = response.data.profile.firstName,
+                    lastName = response.data.profile.lastName
+                },
+                ('Logged in as %s %s.'):format(
+                    response.data.profile.firstName,
+                    response.data.profile.lastName
+                )
             ), { 120, 255, 160 })
         end
     )
@@ -97,25 +124,47 @@ RegisterCommand('logout', function()
             showError(response)
             return
         end
-        message('Character logged out.')
+        message(locale('example.loggedOut', nil, 'Character logged out.'))
     end)
 end, false)
 
 RegisterCommand('whoami', function()
     local data = exports.varde_core:GetPlayerData()
     if not data then
-        message('No character is logged in.')
+        message(locale(
+            'example.notLoggedIn',
+            nil,
+            'No character is logged in.'
+        ))
         return
     end
-    message(('%s %s | cash: %s | bank: %s | job: %s'):format(
-        data.profile.firstName,
-        data.profile.lastName,
-        data.money.cash or 0,
-        data.money.bank or 0,
+    local job = locale(
+        ('labels.jobs.%s.label'):format(data.job.name),
+        nil,
         data.job.label or data.job.name
+    )
+    message(locale(
+        'example.identity',
+        {
+            firstName = data.profile.firstName,
+            lastName = data.profile.lastName,
+            cash = data.money.cash or 0,
+            bank = data.money.bank or 0,
+            job = job
+        },
+        ('%s %s | cash: %s | bank: %s | job: %s'):format(
+            data.profile.firstName,
+            data.profile.lastName,
+            data.money.cash or 0,
+            data.money.bank or 0,
+            job
+        )
     ))
 end, false)
 
 RegisterNetEvent('varde_example:client:message', function(text, success)
     message(text, success and { 120, 255, 160 } or { 255, 100, 100 })
 end)
+local function locale(key, replacements, fallback)
+    return exports.varde_core:Locale(key, replacements, fallback)
+end

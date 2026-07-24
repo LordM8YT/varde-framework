@@ -80,6 +80,7 @@ function notifyError(source, response) {
       Number(source),
       'varde_appearance:client:error',
       response.error.message,
+      response.error.code,
     );
   }
   return response;

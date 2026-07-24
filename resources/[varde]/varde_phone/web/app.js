@@ -26,7 +26,51 @@ const state = {
   activeThread: null,
   messages: [],
   busy: false,
+  locale: {},
+  localeName: 'en',
 };
+
+function translation(key) {
+  let current = state.locale;
+  for (const part of String(key).split('.')) {
+    if (!current || typeof current !== 'object' || !(part in current)) {
+      return undefined;
+    }
+    current = current[part];
+  }
+  return typeof current === 'string' ? current : undefined;
+}
+
+function t(key, replacements = {}, fallback = key) {
+  const value = translation(key) || fallback;
+  return String(value).replace(/\{\{([A-Za-z0-9_]+)\}\}/g, (match, name) => (
+    replacements[name] === undefined ? match : String(replacements[name])
+  ));
+}
+
+function applyStaticLocale() {
+  document.documentElement.lang = state.localeName;
+  document.querySelectorAll('[data-i18n]').forEach((element) => {
+    element.textContent = t(
+      element.dataset.i18n,
+      {},
+      element.textContent.trim(),
+    );
+  });
+  const attributes = [
+    ['data-i18n-aria-label', 'aria-label'],
+    ['data-i18n-placeholder', 'placeholder'],
+  ];
+  for (const [dataAttribute, attribute] of attributes) {
+    document.querySelectorAll(`[${dataAttribute}]`).forEach((element) => {
+      const key = element.getAttribute(dataAttribute);
+      element.setAttribute(
+        attribute,
+        t(key, {}, element.getAttribute(attribute) || ''),
+      );
+    });
+  }
+}
 
 function resourceName() {
   return typeof GetParentResourceName === 'function'
@@ -46,7 +90,10 @@ async function nui(endpoint, payload = {}) {
 async function request(method, payload = {}) {
   const response = await nui('phoneRequest', { method, payload });
   if (!response.ok) {
-    throw new Error(response.error?.message || 'Phone request failed.');
+    throw new Error(
+      response.error?.message
+        || t('errors.requestFailed', {}, 'Phone request failed.'),
+    );
   }
   return response.data;
 }
@@ -75,17 +122,23 @@ function relativeTime(value) {
     return '';
   }
   const seconds = Math.max(0, Math.floor((Date.now() - date.valueOf()) / 1000));
-  if (seconds < 60) return 'now';
+  if (seconds < 60) return t('ui.now', {}, 'now');
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(state.localeName, {
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 function messageTime(value) {
   const date = new Date(value);
   return Number.isNaN(date.valueOf())
     ? ''
-    : date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    : date.toLocaleTimeString(
+      state.localeName,
+      { hour: '2-digit', minute: '2-digit' },
+    );
 }
 
 function hydrate(payload) {
@@ -117,7 +170,8 @@ function renderConversations() {
       const name = document.createElement('strong');
       name.textContent = conversation.name || conversation.phoneNumber;
       const preview = document.createElement('small');
-      preview.textContent = conversation.lastMessage?.body || 'No messages';
+      preview.textContent = conversation.lastMessage?.body
+        || t('ui.noMessagePreview', {}, 'No messages');
       copy.append(name, preview);
 
       const meta = document.createElement('span');
@@ -161,12 +215,12 @@ function renderContacts() {
       chat.type = 'button';
       chat.className = 'mini-button';
       chat.dataset.messageNumber = contact.phoneNumber;
-      chat.textContent = 'Text';
+      chat.textContent = t('ui.text', {}, 'Text');
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'mini-button is-danger';
       remove.dataset.deleteContact = String(contact.id);
-      remove.textContent = 'Delete';
+      remove.textContent = t('ui.delete', {}, 'Delete');
       actions.append(chat, remove);
       row.append(makeAvatar(contact.name), copy, actions);
       return row;
@@ -186,7 +240,9 @@ function renderMessages() {
       const time = document.createElement('time');
       time.dateTime = message.sentAt;
       time.textContent = `${messageTime(message.sentAt)}${
-        message.direction === 'outgoing' && message.readAt ? ' · read' : ''
+        message.direction === 'outgoing' && message.readAt
+          ? ` · ${t('ui.read', {}, 'read')}`
+          : ''
       }`;
       bubble.append(body, time);
       return bubble;
@@ -204,13 +260,19 @@ function renderChrome() {
   tabBar.classList.toggle('is-hidden', inThread);
 
   if (inThread) {
-    headerKicker.textContent = state.activeThread?.phoneNumber || 'Conversation';
+    headerKicker.textContent = state.activeThread?.phoneNumber
+      || t('ui.conversation', {}, 'Conversation');
     headerTitle.textContent =
-      state.activeThread?.name || state.activeThread?.phoneNumber || 'Messages';
+      state.activeThread?.name
+      || state.activeThread?.phoneNumber
+      || t('ui.messages', {}, 'Messages');
   } else {
-    headerKicker.textContent = state.account?.phoneNumber || 'Varde Phone';
+    headerKicker.textContent = state.account?.phoneNumber
+      || t('ui.phoneLabel', {}, 'Varde Phone');
     headerTitle.textContent =
-      state.view === 'contacts' ? 'Contacts' : 'Messages';
+      state.view === 'contacts'
+        ? t('ui.contacts', {}, 'Contacts')
+        : t('ui.messages', {}, 'Messages');
   }
 
   document.querySelectorAll('[data-view]').forEach((button) => {
@@ -276,7 +338,7 @@ contactList.addEventListener('click', async (event) => {
         id: Number(deleteButton.dataset.deleteContact),
       });
       await refresh();
-      showToast('Contact deleted.');
+      showToast(t('ui.contactDeleted', {}, 'Contact deleted.'));
     } catch (error) {
       showToast(error.message, true);
     } finally {
@@ -356,7 +418,7 @@ document.querySelector('#contact-form').addEventListener('submit', async (event)
     await refresh();
     state.view = 'contacts';
     render();
-    showToast('Contact saved.');
+    showToast(t('ui.contactSaved', {}, 'Contact saved.'));
   } catch (error) {
     showToast(error.message, true);
   } finally {
@@ -388,6 +450,11 @@ window.addEventListener('keydown', (event) => {
 window.addEventListener('message', (event) => {
   const { type, payload } = event.data || {};
   if (type === 'open' || type === 'bootstrap') {
+    state.locale = event.data.locale && typeof event.data.locale === 'object'
+      ? event.data.locale
+      : state.locale;
+    state.localeName = event.data.localeName || state.localeName;
+    applyStaticLocale();
     hydrate(payload || {});
     if (type === 'open') {
       state.view = 'messages';
@@ -440,7 +507,7 @@ window.addEventListener('message', (event) => {
 
 function updateClock() {
   document.querySelector('#clock').textContent = new Date().toLocaleTimeString(
-    [],
+    state.localeName,
     { hour: '2-digit', minute: '2-digit' },
   );
 }

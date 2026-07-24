@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Varde Admin</title>
+    <title data-i18n="ui.documentTitle">Varde Admin</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -18,18 +18,18 @@
                     <path d="M28 21h8l-4-7-4 7Z"></path>
                 </svg>
                 <div>
-                    <p class="eyebrow">Operations console</p>
+                    <p class="eyebrow" data-i18n="ui.operationsConsole">Operations console</p>
                     <h1>Varde Admin</h1>
                 </div>
             </div>
             <div class="topbar-actions">
                 <button id="audit-button" class="button button-ghost" type="button">
-                    Audit
+                    <span data-i18n="ui.audit">Audit</span>
                 </button>
                 <button id="refresh-button" class="button button-ghost" type="button">
-                    Refresh
+                    <span data-i18n="ui.refresh">Refresh</span>
                 </button>
-                <button id="close-button" class="icon-button" type="button" aria-label="Close">
+                <button id="close-button" class="icon-button" type="button" aria-label="Close" data-i18n-aria-label="ui.close">
                     ×
                 </button>
             </div>
@@ -38,11 +38,11 @@
         <div class="workspace">
             <aside class="roster">
                 <label class="search">
-                    <span class="sr-only">Search players</span>
-                    <input id="player-search" type="search" placeholder="Search name, ID, job…">
+                    <span class="sr-only" data-i18n="ui.searchPlayers">Search players</span>
+                    <input id="player-search" type="search" placeholder="Search name, ID, job…" data-i18n-placeholder="ui.searchPlaceholder">
                 </label>
                 <div class="roster-heading">
-                    <p class="section-label">Online players</p>
+                    <p class="section-label" data-i18n="ui.onlinePlayers">Online players</p>
                     <span id="player-count" class="counter">0</span>
                 </div>
                 <div id="player-list" class="player-list"></div>
@@ -50,9 +50,9 @@
 
             <section class="detail">
                 <div id="empty-state" class="empty-state">
-                    <p class="eyebrow">No target selected</p>
-                    <h2>Choose a player</h2>
-                    <p>Actions are permission-gated on the server and written to the audit log.</p>
+                    <p class="eyebrow" data-i18n="ui.noTarget">No target selected</p>
+                    <h2 data-i18n="ui.choosePlayer">Choose a player</h2>
+                    <p data-i18n="ui.secureActions">Actions are permission-gated on the server and written to the audit log.</p>
                 </div>
 
                 <div id="player-detail" class="is-hidden">
@@ -69,74 +69,74 @@
                     </header>
 
                     <section class="action-section" data-permission="varde.admin.teleport">
-                        <p class="section-label">Position</p>
+                        <p class="section-label" data-i18n="ui.position">Position</p>
                         <div class="quick-actions">
-                            <button class="button button-ghost" data-action="player:goto">Go to</button>
-                            <button class="button button-ghost" data-action="player:bring">Bring</button>
+                            <button class="button button-ghost" data-action="player:goto" data-i18n="ui.goto">Go to</button>
+                            <button class="button button-ghost" data-action="player:bring" data-i18n="ui.bring">Bring</button>
                         </div>
                     </section>
 
                     <section class="action-section" data-permission="varde.admin.moderation">
-                        <p class="section-label">Moderation</p>
+                        <p class="section-label" data-i18n="ui.moderation">Moderation</p>
                         <div class="quick-actions">
-                            <button class="button button-ghost" data-action="player:heal">Heal</button>
+                            <button class="button button-ghost" data-action="player:heal" data-i18n="ui.heal">Heal</button>
                             <button id="freeze-button" class="button button-ghost" data-action="player:freeze">
                                 Freeze
                             </button>
-                            <button id="kick-button" class="button button-danger" type="button">Kick</button>
+                            <button id="kick-button" class="button button-danger" type="button" data-i18n="ui.kick">Kick</button>
                         </div>
                     </section>
 
                     <div class="form-grid">
                         <form id="economy-form" class="action-card" data-permission="varde.admin.economy">
-                            <p class="section-label">Economy</p>
-                            <h3>Set balance</h3>
+                            <p class="section-label" data-i18n="ui.economy">Economy</p>
+                            <h3 data-i18n="ui.setBalance">Set balance</h3>
                             <div class="field-row">
                                 <label class="field">
-                                    <span>Wallet</span>
+                                    <span data-i18n="ui.wallet">Wallet</span>
                                     <select name="currency">
-                                        <option value="cash">Cash</option>
-                                        <option value="bank">Bank</option>
+                                        <option value="cash" data-i18n="ui.cash">Cash</option>
+                                        <option value="bank" data-i18n="ui.bank">Bank</option>
                                     </select>
                                 </label>
                                 <label class="field">
-                                    <span>Amount</span>
+                                    <span data-i18n="ui.amount">Amount</span>
                                     <input name="amount" type="number" min="0" max="1000000000" required>
                                 </label>
                             </div>
-                            <button class="button button-primary" type="submit">Apply balance</button>
+                            <button class="button button-primary" type="submit" data-i18n="ui.applyBalance">Apply balance</button>
                         </form>
 
                         <form id="job-form" class="action-card" data-permission="varde.admin.jobs">
-                            <p class="section-label">Employment</p>
-                            <h3>Assign job</h3>
+                            <p class="section-label" data-i18n="ui.employment">Employment</p>
+                            <h3 data-i18n="ui.assignJob">Assign job</h3>
                             <div class="field-row">
                                 <label class="field">
-                                    <span>Job name</span>
+                                    <span data-i18n="ui.jobName">Job name</span>
                                     <input name="jobName" placeholder="police" minlength="2" maxlength="32" required>
                                 </label>
                                 <label class="field">
-                                    <span>Grade</span>
+                                    <span data-i18n="ui.grade">Grade</span>
                                     <input name="grade" type="number" min="0" max="1000" value="0" required>
                                 </label>
                             </div>
-                            <button class="button button-primary" type="submit">Assign job</button>
+                            <button class="button button-primary" type="submit" data-i18n="ui.assignJob">Assign job</button>
                         </form>
 
                         <form id="inventory-form" class="action-card" data-permission="varde.admin.inventory">
-                            <p class="section-label">Inventory</p>
-                            <h3>Give item</h3>
+                            <p class="section-label" data-i18n="ui.inventory">Inventory</p>
+                            <h3 data-i18n="ui.giveItem">Give item</h3>
                             <div class="field-row">
                                 <label class="field">
-                                    <span>Item name</span>
+                                    <span data-i18n="ui.itemName">Item name</span>
                                     <input name="itemName" placeholder="water" minlength="2" maxlength="48" required>
                                 </label>
                                 <label class="field">
-                                    <span>Amount</span>
+                                    <span data-i18n="ui.amount">Amount</span>
                                     <input name="amount" type="number" min="1" max="1000000" value="1" required>
                                 </label>
                             </div>
-                            <button class="button button-primary" type="submit">Give item</button>
+                            <button class="button button-primary" type="submit" data-i18n="ui.giveItem">Give item</button>
                         </form>
                     </div>
                 </div>
@@ -144,10 +144,10 @@
                 <section id="audit-panel" class="audit-panel is-hidden">
                     <header>
                         <div>
-                            <p class="eyebrow">Persistent record</p>
-                            <h2>Admin audit</h2>
+                            <p class="eyebrow" data-i18n="ui.persistentRecord">Persistent record</p>
+                            <h2 data-i18n="ui.adminAudit">Admin audit</h2>
                         </div>
-                        <button id="audit-close" class="button button-ghost" type="button">Back</button>
+                        <button id="audit-close" class="button button-ghost" type="button" data-i18n="ui.back">Back</button>
                     </header>
                     <div id="audit-list" class="audit-list"></div>
                 </section>
@@ -158,15 +158,15 @@
 
         <dialog id="kick-dialog">
             <form id="kick-form">
-                <p class="eyebrow">Moderation action</p>
-                <h2>Remove player?</h2>
+                <p class="eyebrow" data-i18n="ui.moderationAction">Moderation action</p>
+                <h2 data-i18n="ui.removePlayer">Remove player?</h2>
                 <label class="field">
-                    <span>Reason</span>
-                    <input name="reason" maxlength="128" value="Removed by an administrator." required>
+                    <span data-i18n="ui.reason">Reason</span>
+                    <input name="reason" maxlength="128" value="Removed by an administrator." data-i18n-value="ui.defaultKickReason" required>
                 </label>
                 <div class="dialog-actions">
-                    <button id="kick-cancel" class="button button-ghost" type="button">Cancel</button>
-                    <button class="button button-danger" type="submit">Kick player</button>
+                    <button id="kick-cancel" class="button button-ghost" type="button" data-i18n="ui.cancel">Cancel</button>
+                    <button class="button button-danger" type="submit" data-i18n="ui.kickPlayer">Kick player</button>
                 </div>
             </form>
         </dialog>

@@ -67,13 +67,26 @@ function result(work) {
   }
 }
 
-function notify(source, text, kind = 'info') {
+function translate(key, replacements, fallback) {
+  try {
+    const handler = globalThis.exports.varde_core.Locale;
+    if (typeof handler === 'function') {
+      return handler(key, replacements, fallback);
+    }
+  } catch {
+    // Older core during a rolling restart: keep the English fallback.
+  }
+  return fallback;
+}
+
+function notify(source, text, kind = 'info', code = null) {
   if (Number(source) > 0) {
     runtime.emitClient(
       Number(source),
       'varde_vehicles:client:message',
       String(text),
       kind,
+      code,
     );
   } else {
     runtime.log(kind === 'error' ? 'error' : 'info', String(text));
@@ -83,7 +96,7 @@ function notify(source, text, kind = 'info') {
 function handle(source, work) {
   const response = result(work);
   if (!response.ok) {
-    notify(source, response.error.message, 'error');
+    notify(source, response.error.message, 'error', response.error.code);
   }
   return response;
 }
@@ -366,7 +379,12 @@ onNet('varde_vehicles:server:toggleLock', (networkId) => {
       Number(networkId),
       vehicle.locked,
     );
-    notify(source, vehicle.locked ? 'Vehicle locked.' : 'Vehicle unlocked.');
+    notify(
+      source,
+      vehicle.locked
+        ? translate('vehicles.locked', null, 'Vehicle locked.')
+        : translate('vehicles.unlocked', null, 'Vehicle unlocked.'),
+    );
     return vehicle;
   });
 });
@@ -395,7 +413,15 @@ RegisterCommand(
       Number(source) !== 0 &&
       !IsPlayerAceAllowed(String(source), 'varde.vehicles.manage')
     ) {
-      notify(source, 'You do not have permission to create vehicles.', 'error');
+      notify(
+        source,
+        translate(
+          'vehicles.createDenied',
+          null,
+          'You do not have permission to create vehicles.',
+        ),
+        'error',
+      );
       return;
     }
     const target = Number(args[0]);
@@ -411,7 +437,15 @@ RegisterCommand(
     if (response.ok) {
       notify(
         source,
-        `Created ${response.data.model} (${response.data.plate}) for source ${target}.`,
+        translate(
+          'vehicles.created',
+          {
+            model: response.data.model,
+            plate: response.data.plate,
+            source: target,
+          },
+          `Created ${response.data.model} (${response.data.plate}) for source ${target}.`,
+        ),
       );
     }
   },

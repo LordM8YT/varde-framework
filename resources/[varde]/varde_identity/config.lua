@@ -1,18 +1,18 @@
 VardeIdentityConfig = {
-    title = 'Varde',
-    subtitle = 'Choose your path',
+    titleKey = 'identity.title',
+    subtitleKey = 'identity.subtitle',
     allowDelete = true,
     spawns = {
         {
             id = 'last',
-            label = 'Last location',
-            description = 'Continue where this character left off.',
+            labelKey = 'identity.spawns.last.label',
+            descriptionKey = 'identity.spawns.last.description',
             useLastPosition = true
         },
         {
             id = 'airport',
-            label = 'Los Santos International',
-            description = 'Arrive at the main terminal.',
+            labelKey = 'identity.spawns.airport.label',
+            descriptionKey = 'identity.spawns.airport.description',
             position = {
                 x = -1037.72,
                 y = -2737.87,
@@ -22,8 +22,8 @@ VardeIdentityConfig = {
         },
         {
             id = 'legion',
-            label = 'Legion Square',
-            description = 'Start in the heart of the city.',
+            labelKey = 'identity.spawns.legion.label',
+            descriptionKey = 'identity.spawns.legion.description',
             position = {
                 x = 215.76,
                 y = -810.12,

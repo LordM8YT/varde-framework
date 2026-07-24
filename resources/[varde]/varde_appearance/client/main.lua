@@ -2,6 +2,10 @@ local appearance = nil
 local hasSpawned = false
 local applying = false
 
+local function locale(key, replacements, fallback)
+    return exports.varde_core:Locale(key, replacements, fallback)
+end
+
 local function nativeTrue(value)
     return value == true or value == 1
 end
@@ -48,7 +52,11 @@ local function apply(value)
     local hash = loadModel(value.model)
     if not hash then
         applying = false
-        message('The stored character model could not be loaded.', 'error')
+        message(locale(
+            'appearance.modelLoadFailed',
+            nil,
+            'The stored character model could not be loaded.'
+        ), 'error')
         return false
     end
 
@@ -148,8 +156,10 @@ RegisterNetEvent('varde_appearance:client:update', function(value)
     end
 end)
 
-RegisterNetEvent('varde_appearance:client:error', function(text)
-    message(text, 'error')
+RegisterNetEvent('varde_appearance:client:error', function(text, code)
+    local key = code and ('errors.%s'):format(tostring(code)) or nil
+    local translated = key and locale(key) or nil
+    message(translated and translated ~= key and translated or text, 'error')
 end)
 
 RegisterNetEvent('varde:client:playerLoaded', function()
@@ -176,11 +186,19 @@ end)
 
 RegisterCommand('appearance', function()
     if not appearance then
-        message('No character appearance is loaded.', 'error')
+        message(locale(
+            'appearance.notLoaded',
+            nil,
+            'No character appearance is loaded.'
+        ), 'error')
         return
     end
     TriggerEvent('varde_appearance:client:openRequested', copy(appearance))
-    message('Appearance editor hook opened. No editor UI is installed yet.')
+    message(locale(
+        'appearance.editorHook',
+        nil,
+        'Appearance editor hook opened. No editor UI is installed yet.'
+    ))
 end, false)
 
 RegisterCommand('resetappearance', function()

@@ -26,6 +26,17 @@ function finiteNumber(value, name) {
   return value;
 }
 
+function localeName(value, name) {
+  const locale = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replaceAll('_', '-');
+  if (!/^[a-z0-9-]{2,16}$/u.test(locale)) {
+    throw frameworkError('CONFIG_INVALID', `${name} is invalid`);
+  }
+  return locale;
+}
+
 function validateConfig(input, resourcePath) {
   assertObject(input, 'config');
   assertObject(input.startingMoney, 'startingMoney');
@@ -47,6 +58,11 @@ function validateConfig(input, resourcePath) {
   }
 
   return Object.freeze({
+    locale: localeName(input.locale || 'en', 'locale'),
+    fallbackLocale: localeName(
+      input.fallbackLocale || 'en',
+      'fallbackLocale',
+    ),
     databaseFile: path.join(resourcePath, databaseFile),
     maxCharacters: positiveInteger(input.maxCharacters, 'maxCharacters', 1, 10),
     saveIntervalMs: positiveInteger(
@@ -101,10 +117,21 @@ function loadConfig(runtime) {
     'varde_saveIntervalMs',
     parsed.saveIntervalMs,
   );
+  const getConvar =
+    typeof runtime.getConvar === 'function'
+      ? runtime.getConvar.bind(runtime)
+      : (_name, fallback) => fallback;
+  const locale = getConvar('varde_locale', parsed.locale || 'en');
+  const fallbackLocale = getConvar(
+    'varde_fallbackLocale',
+    parsed.fallbackLocale || 'en',
+  );
 
   return validateConfig(
     {
       ...parsed,
+      locale,
+      fallbackLocale,
       maxCharacters,
       saveIntervalMs,
     },

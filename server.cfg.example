@@ -18,6 +18,8 @@ set sv_stateBagStrictMode true
 set sv_devMode true
 
 # Core settings can override config/defaults.json without editing the resource.
+# Use "no" for Norwegian. Keep this above every Varde ensure.
+setr varde_locale "en"
 set varde_maxCharacters 4
 set varde_saveIntervalMs 60000
 

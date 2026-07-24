@@ -2,6 +2,10 @@ local needs = nil
 local playerData = nil
 local lastSnapshotJson = nil
 
+local function locale(key, replacements, fallback)
+    return exports.varde_core:Locale(key, replacements, fallback)
+end
+
 local function nativeTrue(value)
     return value == true or value == 1
 end
@@ -26,6 +30,26 @@ local function playerName()
     local firstName = tostring(profile.firstName or '')
     local lastName = tostring(profile.lastName or '')
     return (firstName .. ' ' .. lastName):gsub('^%s+', ''):gsub('%s+$', '')
+end
+
+local function localizedJob()
+    local job = copy(playerData and playerData.job)
+    if not job or type(job.name) ~= 'string' then
+        return job
+    end
+    job.label = locale(
+        ('labels.jobs.%s.label'):format(job.name),
+        nil,
+        job.label or job.name
+    )
+    if job.grade ~= nil then
+        job.gradeLabel = locale(
+            ('labels.jobs.%s.grades.%s'):format(job.name, tostring(job.grade)),
+            nil,
+            job.gradeLabel or tostring(job.grade)
+        )
+    end
+    return job
 end
 
 local function pedVitals()
@@ -85,7 +109,7 @@ local function buildHudSnapshot()
         player = {
             characterId = playerData.characterId,
             name = playerName(),
-            job = copy(playerData.job),
+            job = localizedJob(),
             money = copy(playerData.money)
         },
         status = {

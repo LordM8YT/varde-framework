@@ -2,6 +2,10 @@ local vehicles = {}
 local rawConfig = LoadResourceFile(GetCurrentResourceName(), 'config/vehicles.json')
 local config = rawConfig and json.decode(rawConfig) or { garages = {} }
 
+local function locale(key, replacements, fallback)
+    return exports.varde_core:Locale(key, replacements, fallback)
+end
+
 local function nativeTrue(value)
     return value == true or value == 1
 end
@@ -136,16 +140,30 @@ end
 
 local function printGarage()
     if #vehicles == 0 then
-        message('You do not have any vehicle keys.')
+        message(locale(
+            'vehicles.noKeys',
+            nil,
+            'You do not have any vehicle keys.'
+        ))
         return
     end
-    message('Vehicles - use /garage spawn <vehicle id> at a garage:')
+    message(locale(
+        'vehicles.garageHeader',
+        nil,
+        'Vehicles - use /garage spawn <vehicle id> at a garage:'
+    ))
     for _, vehicle in ipairs(vehicles) do
         message(('%s | %s | %s | %s'):format(
             vehicle.id,
             vehicle.model,
             vehicle.plate,
-            vehicle.state
+            locale(
+                vehicle.state == 'stored'
+                    and 'vehicles.stateStored'
+                    or 'vehicles.stateOut',
+                nil,
+                vehicle.state
+            )
         ))
     end
 end
@@ -155,8 +173,10 @@ RegisterNetEvent('varde_vehicles:client:update', function(snapshot)
     TriggerEvent('varde_vehicles:client:updated', copy(snapshot))
 end)
 
-RegisterNetEvent('varde_vehicles:client:message', function(text, kind)
-    message(text, kind)
+RegisterNetEvent('varde_vehicles:client:message', function(text, kind, code)
+    local key = code and ('errors.%s'):format(tostring(code)) or nil
+    local translated = key and locale(key) or nil
+    message(translated and translated ~= key and translated or text, kind)
 end)
 
 RegisterNetEvent('varde_vehicles:client:spawned', function(id, vehicle)
@@ -168,7 +188,11 @@ RegisterNetEvent('varde_vehicles:client:spawned', function(id, vehicle)
         end
         local entity = NetToVeh(id)
         if entity == 0 or not DoesEntityExist(entity) then
-            message('Vehicle was created, but did not stream in.', 'error')
+            message(locale(
+                'vehicles.streamFailed',
+                nil,
+                'Vehicle was created, but did not stream in.'
+            ), 'error')
             return
         end
         SetVehicleNumberPlateText(entity, vehicle.plate)
@@ -244,12 +268,20 @@ RegisterCommand('garage', function(_, args)
     end
     if action == 'spawn' then
         if not args[2] then
-            message('Usage: /garage spawn <vehicle id>', 'error')
+            message(locale(
+                'vehicles.usageSpawn',
+                nil,
+                'Usage: /garage spawn <vehicle id>'
+            ), 'error')
             return
         end
         local garageId = nearestGarage('menu', 6.0)
         if not garageId then
-            message('You must be at a garage menu.', 'error')
+            message(locale(
+                'vehicles.atGarage',
+                nil,
+                'You must be at a garage menu.'
+            ), 'error')
             return
         end
         TriggerServerEvent('varde_vehicles:server:spawn', args[2], garageId)
@@ -260,7 +292,11 @@ RegisterCommand('garage', function(_, args)
         local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
         local id = networkId(vehicle)
         if not garageId or not id then
-            message('Drive your vehicle to a garage store marker.', 'error')
+            message(locale(
+                'vehicles.driveToStore',
+                nil,
+                'Drive your vehicle to a garage store marker.'
+            ), 'error')
             return
         end
         TriggerServerEvent(
@@ -271,13 +307,21 @@ RegisterCommand('garage', function(_, args)
         )
         return
     end
-    message('Usage: /garage [spawn <vehicle id>|store]', 'error')
+    message(locale(
+        'vehicles.usageGarage',
+        nil,
+        'Usage: /garage [spawn <vehicle id>|store]'
+    ), 'error')
 end, false)
 
 RegisterCommand('trunk', function()
     local id = networkId(closestVehicle())
     if not id then
-        message('No networked vehicle is nearby.', 'error')
+        message(locale(
+            'vehicles.noNearbyVehicle',
+            nil,
+            'No networked vehicle is nearby.'
+        ), 'error')
         return
     end
     TriggerServerEvent('varde_vehicles:server:trunk', id)
@@ -286,12 +330,21 @@ end, false)
 RegisterCommand('vlock', function()
     local id = networkId(closestVehicle())
     if not id then
-        message('No networked vehicle is nearby.', 'error')
+        message(locale(
+            'vehicles.noNearbyVehicle',
+            nil,
+            'No networked vehicle is nearby.'
+        ), 'error')
         return
     end
     TriggerServerEvent('varde_vehicles:server:toggleLock', id)
 end, false)
-RegisterKeyMapping('vlock', 'Lock or unlock your Varde vehicle', 'keyboard', 'L')
+RegisterKeyMapping(
+    'vlock',
+    locale('vehicles.lockKey', nil, 'Lock or unlock your Varde vehicle'),
+    'keyboard',
+    'L'
+)
 
 exports('GetVehicles', function()
     return copy(vehicles)
@@ -317,7 +370,7 @@ CreateThread(function()
 end)
 
 CreateThread(function()
-    for _, garage in pairs(config.garages or {}) do
+    for garageId, garage in pairs(config.garages or {}) do
         if garage.blip then
             local blip = AddBlipForCoord(
                 garage.menu.x,
@@ -329,7 +382,11 @@ CreateThread(function()
             SetBlipScale(blip, tonumber(garage.blip.scale) or 0.75)
             SetBlipAsShortRange(blip, true)
             BeginTextCommandSetBlipName('STRING')
-            AddTextComponentString(garage.label or 'Garage')
+            AddTextComponentString(locale(
+                ('labels.garages.%s'):format(tostring(garageId)),
+                nil,
+                garage.label or locale('common.garage', nil, 'Garage')
+            ))
             EndTextCommandSetBlipName(blip)
         end
     end
@@ -359,9 +416,11 @@ CreateThread(function()
                 )
                 if menuDistance <= 2.0 then
                     BeginTextCommandDisplayHelp('STRING')
-                    AddTextComponentSubstringPlayerName(
+                    AddTextComponentSubstringPlayerName(locale(
+                        'vehicles.viewGarage',
+                        nil,
                         'Press ~INPUT_CONTEXT~ to view your garage'
-                    )
+                    ))
                     EndTextCommandDisplayHelp(0, false, true, -1)
                     if nativeTrue(IsControlJustReleased(0, 38))
                         and GetGameTimer() >= nextInteraction then
@@ -385,9 +444,11 @@ CreateThread(function()
                 )
                 if storeDistance <= 3.0 and IsPedInAnyVehicle(ped, false) then
                     BeginTextCommandDisplayHelp('STRING')
-                    AddTextComponentSubstringPlayerName(
+                    AddTextComponentSubstringPlayerName(locale(
+                        'vehicles.storeVehicle',
+                        nil,
                         'Use /garage store to store this vehicle'
-                    )
+                    ))
                     EndTextCommandDisplayHelp(0, false, true, -1)
                 end
             end

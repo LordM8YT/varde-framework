@@ -38,15 +38,38 @@ database and its WAL files are ignored by Git.
 
 Defaults live in `config/defaults.json`.
 
-Two values currently have convar overrides:
+Core values can be overridden with convars:
 
 ```cfg
+setr varde_locale "en"
 set varde_maxCharacters 4
 set varde_saveIntervalMs 60000
 ```
 
+`varde_locale` is replicated because clients and NUI use the same language as
+the server. English (`en`) and Norwegian (`no`) are bundled. Missing keys fall
+back to English.
+
 Money is stored as non-negative integer game units. Floating-point balances are
 rejected.
+
+### Locale API
+
+The same export is available to client and server resources:
+
+```lua
+local text = exports.varde_core:Locale(
+    'vehicles.created',
+    { model = 'sultan', plate = 'VARDE', source = 7 }
+)
+
+local localeName = exports.varde_core:GetLocale()
+local identityTranslations = exports.varde_core:GetLocaleData('identity')
+```
+
+Pass an English fallback as the third argument for keys owned by another
+resource. See the repository's [localization guide](../../../docs/localization.md)
+before adding keys or a language.
 
 ## Client exports
 

@@ -16,6 +16,115 @@ local function copy(value)
     return json.decode(json.encode(value))
 end
 
+local function normalizeLocale(value, fallback)
+    local locale = tostring(value or fallback or 'en')
+        :lower()
+        :gsub('_', '-')
+        :gsub('[^%w%-]', '')
+    if #locale < 2 or #locale > 16 then
+        return fallback or 'en'
+    end
+    return locale
+end
+
+local function loadLocale(locale)
+    local raw = LoadResourceFile(RESOURCE_NAME, ('locales/%s.json'):format(locale))
+    if not raw then
+        return nil
+    end
+    local ok, parsed = pcall(json.decode, raw)
+    if not ok or type(parsed) ~= 'table' then
+        print(('[varde_core] Locale locales/%s.json is invalid.'):format(locale))
+        return nil
+    end
+    return parsed
+end
+
+local function mergeLocale(fallback, selected)
+    if type(fallback) ~= 'table' then
+        return selected ~= nil and copy(selected) or copy(fallback)
+    end
+    local output = {}
+    local selectedTable = type(selected) == 'table' and selected or {}
+    for key, value in pairs(fallback) do
+        output[key] = mergeLocale(value, selectedTable[key])
+    end
+    for key, value in pairs(selectedTable) do
+        if output[key] == nil then
+            output[key] = copy(value)
+        end
+    end
+    return output
+end
+
+local fallbackLocaleName = normalizeLocale(config.fallbackLocale, 'en')
+local requestedLocaleName = normalizeLocale(
+    GetConvar('varde_locale', config.locale or fallbackLocaleName),
+    fallbackLocaleName
+)
+local fallbackLocale = loadLocale(fallbackLocaleName) or {}
+local selectedLocale = loadLocale(requestedLocaleName)
+local activeLocaleName = requestedLocaleName
+
+if not selectedLocale and requestedLocaleName:find('-', 1, true) then
+    local baseLocaleName = requestedLocaleName:match('^[^-]+')
+    selectedLocale = loadLocale(baseLocaleName)
+    if selectedLocale then
+        activeLocaleName = baseLocaleName
+    end
+end
+if not selectedLocale then
+    selectedLocale = fallbackLocale
+    activeLocaleName = fallbackLocaleName
+end
+
+local translations = mergeLocale(fallbackLocale, selectedLocale)
+
+local function localeValue(key)
+    local current = translations
+    for part in tostring(key or ''):gmatch('[^.]+') do
+        if type(current) ~= 'table' then
+            return nil
+        end
+        current = current[part]
+        if current == nil then
+            return nil
+        end
+    end
+    return current
+end
+
+local function locale(key, replacements, fallback)
+    local value = localeValue(key)
+    if type(value) ~= 'string' then
+        value = fallback ~= nil and tostring(fallback) or tostring(key or '')
+    end
+    if type(replacements) == 'table' then
+        value = value:gsub('{{([%w_]+)}}', function(name)
+            local replacement = replacements[name]
+            return replacement ~= nil and tostring(replacement)
+                or ('{{%s}}'):format(name)
+        end)
+    end
+    return value
+end
+
+local function localizeResponse(response)
+    if type(response) ~= 'table' or response.ok ~= false
+        or type(response.error) ~= 'table' then
+        return response
+    end
+    local code = tostring(response.error.code or '')
+    if code ~= '' then
+        local key = ('errors.%s'):format(code)
+        local translated = localeValue(key)
+        if type(translated) == 'string' then
+            response.error.message = translated
+        end
+    end
+    return response
+end
+
 -- GTAV Enhanced early access can expose native BOOL results as 0/1. Lua
 -- treats numeric 0 as truthy, so normalize before using native results in
 -- conditions or sending them to the server.
@@ -75,7 +184,11 @@ local function callAsync(method, payload, callback, timeoutMs)
                 ok = false,
                 error = {
                     code = 'TIMEOUT',
-                    message = ('RPC %s timed out'):format(method)
+                    message = locale(
+                        'core.rpcTimeout',
+                        { method = method },
+                        ('RPC %s timed out'):format(method)
+                    )
                 }
             })
         end
@@ -225,7 +338,7 @@ end
 RegisterNetEvent('varde:client:rpcResponse', function(requestId, response)
     local resolver = pending[tostring(requestId)]
     if resolver then
-        resolver(response)
+        resolver(localizeResponse(response))
     end
 end)
 
@@ -243,6 +356,17 @@ end)
 
 exports('Call', call)
 exports('CallAsync', callAsync)
+exports('Locale', locale)
+exports('GetLocale', function()
+    return activeLocaleName
+end)
+exports('GetLocaleData', function(namespace)
+    if namespace == nil or namespace == '' then
+        return copy(translations)
+    end
+    local value = localeValue(namespace)
+    return type(value) == 'table' and copy(value) or {}
+end)
 exports('ListCharacters', function()
     return call('characters:list', {})
 end)
@@ -313,7 +437,7 @@ AddEventHandler('onResourceStop', function(stoppedResource)
             ok = false,
             error = {
                 code = 'RESOURCE_STOPPED',
-                message = 'varde_core stopped'
+                message = locale('core.resourceStopped', nil, 'Varde Core stopped.')
             }
         })
         pending[requestId] = nil
