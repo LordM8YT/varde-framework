@@ -40,7 +40,9 @@ the owning resource's README.
 
 ## Database changes
 
-Read [Database lifecycle](docs/database-lifecycle.md) before changing a schema.
+Read
+[Database and Backups](https://github.com/LordM8YT/varde-framework/wiki/Database-and-Backups)
+before changing a schema.
 Migrations are forward-only, transactional, resource-owned, and covered by
 tests. Never edit an operator's database or `PRAGMA user_version` manually.
 

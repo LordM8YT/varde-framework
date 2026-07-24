@@ -88,9 +88,10 @@ so a client cannot queue overlapping uses while a handler is suspended.
 `GetInventory`, `GetItemCount`, and `HasItem` read the owner-only cache. The
 `varde_inventory:client:updated` local event fires after every server update.
 
-The frontend contract is documented in
-`docs/ui-contracts/v1/README.md`. `config/ui.json` keeps the NUI disabled by
-default until a frontend is installed. The local
+The frontend contract is documented in the
+[Varde Wiki](https://github.com/LordM8YT/varde-framework/wiki/UI-Contracts).
+Mock payloads live under `contracts/ui/v1`. `config/ui.json` keeps the NUI
+disabled by default until a frontend is installed. The local
 `varde_inventory:client:uiOpenRequested` event receives the exact bootstrap
 payload for frontend development.
 

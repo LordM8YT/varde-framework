@@ -9,8 +9,8 @@ const contractRoot = path.resolve(
   __dirname,
   '..',
   '..',
-  'docs',
-  'ui-contracts',
+  'contracts',
+  'ui',
   'v1',
 );
 

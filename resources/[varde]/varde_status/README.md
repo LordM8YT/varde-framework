@@ -38,4 +38,4 @@ end)
 ```
 
 The frontend contract and mock data are documented in
-[`docs/ui-contracts/v1`](../../../docs/ui-contracts/v1/README.md).
+[the Varde UI Contracts Wiki page](https://github.com/LordM8YT/varde-framework/wiki/UI-Contracts).

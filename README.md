@@ -3,6 +3,10 @@
 Varde is an independent, Enhanced-first roleplay framework for FiveM. It is built from
 scratch and does not require Qbox, QBCore, ESX, ox_lib, or oxmysql.
 
+[Documentation](https://github.com/LordM8YT/varde-framework/wiki) ·
+[Installation](https://github.com/LordM8YT/varde-framework/wiki/Installation) ·
+[Developer guide](https://github.com/LordM8YT/varde-framework/wiki/Developer-Guide)
+
 The current pre-alpha foundation includes:
 
 - account creation from the player's Cfx license
@@ -40,6 +44,8 @@ resources/
     varde_example/    Commands showing the public API
 templates/
   varde_resource/     Copyable starter for new Varde resources
+contracts/
+  ui/v1/              Versioned UI mock payloads
 server.cfg.example       Minimal development configuration
 ```
 
@@ -60,8 +66,9 @@ https://raw.githubusercontent.com/LordM8YT/varde-framework/main/recipe.yaml
 
 The recipe creates a complete server-data directory with the standard CFX
 resources, Varde, a generated `server.cfg`, and no external framework or
-database dependency. See the [txAdmin installation guide](docs/txadmin-install.md)
-for the full setup flow and the Enhanced early-access note.
+database dependency. See the
+[Installation guide](https://github.com/LordM8YT/varde-framework/wiki/Installation)
+for the full setup flow and Enhanced notes.
 
 ## Development
 
@@ -74,7 +81,8 @@ npm test
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for design and review rules,
 [SECURITY.md](SECURITY.md) for private reporting, and
-[Database lifecycle](docs/database-lifecycle.md) for backup and migration
+[Database and Backups](https://github.com/LordM8YT/varde-framework/wiki/Database-and-Backups)
+for backup and migration
 procedures.
 
 External resources should begin with the
@@ -83,11 +91,13 @@ exports, replicated State Bags, and native ACE-protected commands without
 QBCore, Qbox, or ESX compatibility patterns.
 
 Language is selected once in `server.cfg` with `setr varde_locale "en"` or
-`setr varde_locale "no"`. See [Localization](docs/localization.md) for the
-runtime API and instructions for adding another language.
+`setr varde_locale "no"`. See
+[Localization](https://github.com/LordM8YT/varde-framework/wiki/Localization)
+for the runtime API and instructions for adding another language.
 
 The first public artifact should be validated with the
-[Enhanced early-access test plan](docs/early-access-test-plan.md) before an
+[Enhanced test plan](https://github.com/LordM8YT/varde-framework/wiki/Enhanced-Test-Plan)
+before an
 alpha release is tagged.
 
 See [the core documentation](<resources/[varde]/varde_core/README.md>) for
@@ -115,7 +125,8 @@ The text-only communication MVP is documented in
 [varde_phone](<resources/[varde]/varde_phone/README.md>).
 
 Frontend contributors should use the versioned
-[Varde UI contracts](docs/ui-contracts/v1/README.md) and bundled mock payloads.
+[Varde UI contracts](https://github.com/LordM8YT/varde-framework/wiki/UI-Contracts)
+and bundled mock payloads under `contracts/ui/v1`.
 NUI code never accesses a framework export or database directly.
 
 ## License

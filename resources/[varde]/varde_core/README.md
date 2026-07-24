@@ -68,7 +68,8 @@ local identityTranslations = exports.varde_core:GetLocaleData('identity')
 ```
 
 Pass an English fallback as the third argument for keys owned by another
-resource. See the repository's [localization guide](../../../docs/localization.md)
+resource. See the
+[localization guide](https://github.com/LordM8YT/varde-framework/wiki/Localization)
 before adding keys or a language.
 
 ## Client exports
