@@ -38,6 +38,8 @@ resources/
     varde_admin/      ACE-secured operations and audit panel
     varde_phone/      Contacts and offline text messaging
     varde_example/    Commands showing the public API
+templates/
+  varde_resource/     Copyable starter for new Varde resources
 server.cfg.example       Minimal development configuration
 ```
 
@@ -74,6 +76,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for design and review rules,
 [SECURITY.md](SECURITY.md) for private reporting, and
 [Database lifecycle](docs/database-lifecycle.md) for backup and migration
 procedures.
+
+External resources should begin with the
+[Varde resource starter](templates/varde_resource). It demonstrates direct
+exports, replicated State Bags, and native ACE-protected commands without
+QBCore, Qbox, or ESX compatibility patterns.
 
 Language is selected once in `server.cfg` with `setr varde_locale "en"` or
 `setr varde_locale "no"`. See [Localization](docs/localization.md) for the

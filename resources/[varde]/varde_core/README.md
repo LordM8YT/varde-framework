@@ -139,12 +139,16 @@ to invoke arbitrary server functions.
 
 An `identifier` can be an online server ID or an online `characterId`.
 
-`GetPlayerData` returns a snapshot or `nil`:
+`GetPlayer` and `GetPlayerData` return the same detached, read-only snapshot or
+`nil`. `GetPlayer` is the preferred name for new server resources:
 
 ```lua
-local player = exports.varde_core:GetPlayerData(source)
+local player = exports.varde_core:GetPlayer(source)
 local source = exports.varde_core:GetPlayerSource(characterId)
 ```
+
+Changing fields on the returned table never mutates core state. Use the
+dedicated mutation exports below for persistent data.
 
 Characters can also be deleted from a trusted server resource while the owning
 player is logged out:

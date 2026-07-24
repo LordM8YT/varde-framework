@@ -248,6 +248,9 @@ on('playerDropped', () => {
 globalThis.exports('GetPlayerData', (identifier) =>
   core.getPlayerData(identifier),
 );
+globalThis.exports('GetPlayer', (identifier) =>
+  core.getPlayerData(identifier),
+);
 globalThis.exports('Locale', (key, replacements, fallback) =>
   locale.get(key, replacements, fallback),
 );

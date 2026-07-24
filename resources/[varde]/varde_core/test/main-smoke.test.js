@@ -107,6 +107,7 @@ test('Cfx wiring boots and completes connection, creation, and selection', () =>
     assert.equal(netHandlers.has('varde:server:rpc'), true);
     assert.equal(eventHandlers.has('playerConnecting'), true);
     assert.equal(registeredExports.has('AddMoney'), true);
+    assert.equal(registeredExports.has('GetPlayer'), true);
     assert.equal(registeredExports.has('Locale'), true);
 
     let deferralResult = 'not-called';
@@ -144,6 +145,12 @@ test('Cfx wiring boots and completes connection, creation, and selection', () =>
       states.some((state) => state.key === 'varde:loaded' && state.value === true),
       true,
     );
+
+    const getPlayer = registeredExports.get('GetPlayer');
+    const playerSnapshot = getPlayer(source);
+    assert.equal(playerSnapshot.characterId, characterId);
+    playerSnapshot.profile.firstName = 'Mutated';
+    assert.equal(getPlayer(source).profile.firstName, 'Smoke');
 
     const addMoney = registeredExports.get('AddMoney');
     const moneyResult = addMoney(source, 'cash', 50, 'smoke_test', 'smoke:1');
